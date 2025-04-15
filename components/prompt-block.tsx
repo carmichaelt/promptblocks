@@ -2,14 +2,16 @@
 
 import { forwardRef, useState, useRef } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { Sparkles, Info, Mic, MicOff } from "lucide-react"
+import { Sparkles, Info, Mic, MicOff, GripVertical } from "lucide-react"
 import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
 import { Switch } from "@/components/ui/switch"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { cn } from "@/lib/utils"
 import type { PromptBlock } from "@/types/prompt-types"
+import { blockConfigs } from "@/lib/prompt-config"
 import AIPromptDialog from "./ai-prompt-dialog"
+import BlockInfoDialog from "./block-info-dialog"
 import LoadingSparkles from "./loading-sparkles"
 import ParticleEffect from "./particle-effect"
 import { experimental_useObject as useObject } from 'ai/react'
@@ -25,11 +27,14 @@ interface PromptBlockProps {
   onToggle: () => void
   isRecording: boolean
   onRecordingToggle: () => void
+  onDragStart?: () => void
+  onDragEnd?: () => void
 }
 
 const PromptBlockComponent = forwardRef<HTMLTextAreaElement, PromptBlockProps>(
-  ({ block, index, isFocused, isDisabled, onChange, onFocus, onToggle, isRecording, onRecordingToggle }, ref) => {
+  ({ block, index, isFocused, isDisabled, onChange, onFocus, onToggle, isRecording, onRecordingToggle, onDragStart, onDragEnd }, ref) => {
     const [isAIDialogOpen, setIsAIDialogOpen] = useState(false)
+    const [isInfoDialogOpen, setIsInfoDialogOpen] = useState(false)
     const [particlePosition, setParticlePosition] = useState<{ x: number; y: number } | null>(null)
     const blockRef = useRef<HTMLDivElement>(null)
 
@@ -55,7 +60,11 @@ const PromptBlockComponent = forwardRef<HTMLTextAreaElement, PromptBlockProps>(
       output: "border-teal-300 bg-teal-50/90 dark:border-teal-700 dark:bg-teal-950/80",
       persona: "border-indigo-300 bg-indigo-50/90 dark:border-indigo-700 dark:bg-indigo-950/80",
       format: "border-pink-300 bg-pink-50/90 dark:border-pink-700 dark:bg-pink-950/80",
+      audience: "border-orange-300 bg-orange-50/90 dark:border-orange-700 dark:bg-orange-950/80",
+      tone: "border-cyan-300 bg-cyan-50/90 dark:border-cyan-700 dark:bg-cyan-950/80",
     }
+
+    const blockConfig = blockConfigs[block.type]
 
     const handleAIClick = async () => {
       if (!blockRef.current) return
@@ -87,6 +96,7 @@ const PromptBlockComponent = forwardRef<HTMLTextAreaElement, PromptBlockProps>(
           "rounded-lg border-l-4 p-4 transition-all relative shadow-md",
           blockColors[block.type as keyof typeof blockColors],
           isFocused && "ring-2 ring-offset-2 ring-slate-300 dark:ring-slate-600",
+          !block.enabled && "opacity-50",
         )}
       >
         <AnimatePresence>
@@ -95,6 +105,16 @@ const PromptBlockComponent = forwardRef<HTMLTextAreaElement, PromptBlockProps>(
 
         <div className="mb-2 flex justify-between items-center">
           <div className="flex items-center gap-2">
+            {onDragStart && onDragEnd && (
+              <button
+                className="cursor-grab hover:text-slate-600 dark:hover:text-slate-400"
+                onMouseDown={onDragStart}
+                onMouseUp={onDragEnd}
+                aria-label="Drag to reorder"
+              >
+                <GripVertical size={16} />
+              </button>
+            )}
             <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
               {index + 1}. {block.label}
             </span>
@@ -111,13 +131,17 @@ const PromptBlockComponent = forwardRef<HTMLTextAreaElement, PromptBlockProps>(
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <span className="flex items-center text-xs px-2 py-1 rounded-full bg-white/80 dark:bg-slate-700/80 text-slate-700 dark:text-slate-300">
-                    {block.type}
-                    <Info size={14} className="ml-1" />
-                  </span>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-7 w-7"
+                    onClick={() => setIsInfoDialogOpen(true)}
+                  >
+                    <Info size={16} />
+                  </Button>
                 </TooltipTrigger>
-                <TooltipContent className="max-w-xs">
-                  <p>{block.description}</p>
+                <TooltipContent>
+                  <p>View block information and examples</p>
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
@@ -167,12 +191,13 @@ const PromptBlockComponent = forwardRef<HTMLTextAreaElement, PromptBlockProps>(
           value={block.content}
           onChange={(e) => onChange(e.target.value)}
           onFocus={onFocus}
-          disabled={isDisabled || isGenerating}
+          disabled={isDisabled || isGenerating || !block.enabled}
           placeholder={block.placeholder}
           className={cn(
             "min-h-24 resize-y border-slate-200 dark:border-slate-700 bg-white/90 dark:bg-slate-900/90",
             isDisabled && "cursor-not-allowed",
             isGenerating && "opacity-50",
+            !block.enabled && "cursor-not-allowed bg-slate-50 dark:bg-slate-800",
           )}
         />
         {isGenerating && (
@@ -187,6 +212,12 @@ const PromptBlockComponent = forwardRef<HTMLTextAreaElement, PromptBlockProps>(
           onGenerate={(content) => onChange(content)}
           blockType={block.type}
           blockLabel={block.label}
+        />
+
+        <BlockInfoDialog
+          open={isInfoDialogOpen}
+          onOpenChange={setIsInfoDialogOpen}
+          blockConfig={blockConfig}
         />
       </motion.div>
     )

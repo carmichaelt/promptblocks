@@ -246,9 +246,13 @@ export default function PromptBuilder() {
 
       <div className="flex justify-between items-center mb-6">
         <Tabs defaultValue="general" value={activeTemplate} onValueChange={setActiveTemplate} className="w-full">
-          <TabsList className="grid grid-cols-4 mb-4">
+          <TabsList className="grid grid-cols-4 mb-4 bg-white/90 dark:bg-slate-800/90 p-1 rounded-lg">
             {promptTemplates.map((template: PromptTemplate) => (
-              <TabsTrigger key={template.id} value={template.id}>
+              <TabsTrigger 
+                key={template.id} 
+                value={template.id}
+                className="data-[state=active]:bg-purple-600 data-[state=active]:text-white dark:data-[state=active]:text-white data-[state=active]:shadow-sm"
+              >
                 {template.name}
               </TabsTrigger>
             ))}

@@ -24,42 +24,44 @@ export const blockConfigs: Record<string, BlockConfig> = {
   persona: {
     type: "persona",
     title: "Persona Block",
-    description: "Define the role or persona the AI should adopt.",
+    description: "Define the role, expertise, and characteristics the AI should embody.",
     bestPractices: [
-      "Be specific about the expertise or role (e.g., 'expert software engineer', 'friendly travel agent').",
-      "Clearly state the desired characteristics or perspective.",
-      "Consider the knowledge level expected from this persona.",
-      "Think about who the AI is imitating or acting as.",
-      "Ensure the persona aligns with the task requirements."
+      "Be specific about expertise level and domain knowledge",
+      "Define clear behavioral characteristics",
+      "Include relevant professional standards or methodologies",
+      "Specify any ethical guidelines or principles to follow",
+      "Consider the relationship dynamic with the user",
+      "Align expertise with the task requirements"
     ],
     examples: [
-      "Act as a senior marketing strategist specializing in B2B SaaS.",
-      "You are a meticulous editor focusing on clarity and conciseness.",
-      "Assume the persona of a historian explaining the causes of World War I.",
-      "You are a helpful AI assistant designed to explain complex topics simply."
+      "Expert software architect with 15+ years experience in distributed systems",
+      "Professional editor following Chicago Manual of Style guidelines",
+      "Patient, supportive teaching assistant specializing in mathematics",
+      "Data scientist with expertise in statistical analysis and visualization"
     ],
-    placeholder: "Define the role, expertise level, and characteristics of the AI persona..."
+    placeholder: "Define the role, expertise level, and key characteristics..."
   },
   context: {
     type: "context",
     title: "Context Block",
-    description: "Set the stage with essential background information, situation, or input data.",
+    description: "Provide essential background information and situational context.",
     bestPractices: [
-      "Provide relevant background details the AI needs to understand the task.",
-      "Include any specific input data, text, or code to be processed.",
-      "Mention relevant historical or preceding information if necessary.",
-      "Start broad, then narrow down to specifics relevant to the task.",
-      "Include domain-specific terminology if applicable and necessary for the persona.",
-      "Specify any relevant constraints or limitations not related to output format."
+      "Start with the most relevant information first",
+      "Include necessary technical details or specifications",
+      "Provide historical context if relevant",
+      "Define any domain-specific terminology",
+      "Specify the current state or situation",
+      "Include any relevant constraints or limitations",
+      "Mention related work or previous attempts",
+      "Clarify the scope of the context"
     ],
     examples: [
-      "We are developing a mobile app for language learning targeting beginners.",
-      "Here is the user feedback we received: 'The navigation is confusing...' ",
-      "The project aims to reduce customer churn by 15% in the next quarter.",
-      "Consider the following Python code snippet: [code snippet here]",
-      "Background: Our company recently merged with a competitor."
+      "We're developing a React application with TypeScript and need to implement...",
+      "Previous analysis showed that customer churn increased by 15% after...",
+      "The legacy system uses Java 8 and Oracle Database 12c...",
+      "Our team has already attempted to solve this by..."
     ],
-    placeholder: "Provide relevant background information and context that the AI needs to understand your request..."
+    placeholder: "Provide relevant background information and context..."
   },
   audience: {
     type: "audience",
@@ -84,22 +86,24 @@ export const blockConfigs: Record<string, BlockConfig> = {
   task: {
     type: "task",
     title: "Task Block",
-    description: "Define the specific, actionable task or objective for the AI.",
+    description: "Clearly define what needs to be accomplished.",
     bestPractices: [
-      "Use clear, direct, and unambiguous action verbs (e.g., 'Summarize', 'Generate', 'Analyze', 'Translate', 'Classify').",
-      "Be explicit about the desired outcome or goal.",
-      "Break down complex tasks into smaller, sequential steps if necessary.",
-      "Clearly state what the AI should *do* with the provided context/input.",
-      "Define the scope clearly – what *should* and *should not* be included."
+      "Use clear, actionable verbs (analyze, create, optimize, etc.)",
+      "Break complex tasks into smaller steps",
+      "Specify the expected outcome",
+      "Include acceptance criteria",
+      "Define the scope clearly",
+      "Indicate priority or importance",
+      "Specify any dependencies",
+      "Include success metrics if applicable"
     ],
     examples: [
-      "Summarize the key findings from the provided text.",
-      "Generate 5 creative taglines for the mobile app described in the context.",
-      "Analyze the provided code snippet and identify potential security vulnerabilities.",
-      "Translate the following paragraph from English to French.",
-      "Draft an email to the target audience explaining the new feature."
+      "Analyze the provided code for potential security vulnerabilities...",
+      "Create a step-by-step migration plan for upgrading from...",
+      "Optimize the following database query to improve performance...",
+      "Design a RESTful API endpoint that handles..."
     ],
-    placeholder: "Clearly describe what you want the AI to do. Be specific about your expectations and desired outcome..."
+    placeholder: "Specify what needs to be done and the desired outcome..."
   },
   tone: {
     type: "tone",
@@ -124,23 +128,24 @@ export const blockConfigs: Record<string, BlockConfig> = {
   format: {
     type: "format",
     title: "Format Block",
-    description: "Specify the exact output structure, layout, and formatting requirements.",
+    description: "Define the structure and presentation of the response.",
     bestPractices: [
-      "Be explicit about the desired format (e.g., 'JSON', 'Markdown', 'bullet points', 'table', 'email').",
-      "Define clear section headers or structure if needed.",
-      "Specify required fields, keys, or components (e.g., for JSON output).",
-      "Include formatting examples or templates.",
-      "Define markup or syntax requirements (e.g., 'Use H2 headers for sections').",
-      "Specify length constraints (e.g., 'under 500 words', 'a concise paragraph')."
+      "Specify the desired output structure clearly",
+      "Include section headers or markers",
+      "Define any required formatting (markdown, JSON, etc.)",
+      "Specify length requirements",
+      "Include any templating requirements",
+      "Define the level of detail needed",
+      "Specify any required metadata",
+      "Include examples of the desired format"
     ],
     examples: [
-      "Format the response as a JSON object with keys 'summary' and 'action_items'.",
-      "Use Markdown formatting with bullet points for the main ideas.",
-      "Present the comparison in a table with columns: 'Feature', 'Pros', 'Cons'.",
-      "Output should be a standard business email format.",
-      "Provide the answer as a numbered list, ordered by importance."
+      "Return a JSON object with keys: 'summary', 'steps', 'recommendations'",
+      "Format the response in markdown with H2 headers for each section",
+      "Provide a numbered list of steps, each with a description and example",
+      "Structure the analysis as: Context → Problem → Solution → Implementation"
     ],
-    placeholder: "Specify how you want the response structured (e.g., bullet points, paragraphs, sections)..."
+    placeholder: "Define how the response should be structured and formatted..."
   },
   constraints: {
     type: "constraints",
@@ -507,6 +512,88 @@ export const promptTemplates: PromptTemplate[] = [
         content: "",
         enabled: false,
         placeholder: "Provide examples of similar emails or preferred phrasings...",
+      }
+    ],
+  },
+  {
+    id: "structured-reasoning",
+    name: "Structured Reasoning",
+    description: "Template for complex problem-solving using chain-of-thought and step-by-step reasoning",
+    blocks: [
+      {
+        ...blockConfigs.context,
+        label: "Initial Problem",
+        content: "",
+        enabled: true,
+        placeholder: "Describe the problem or scenario that needs analysis...",
+      },
+      {
+        ...blockConfigs.task,
+        label: "Reasoning Steps Required",
+        content: "Please solve this problem using the following steps:\n1. Understand key information\n2. Break down the problem\n3. Consider relevant principles\n4. Apply logical reasoning\n5. Validate assumptions\n6. Draw conclusions",
+        enabled: true,
+        placeholder: "List the specific reasoning steps needed...",
+      },
+      {
+        ...blockConfigs.constraints,
+        label: "Reasoning Constraints",
+        content: "When solving this problem:\n- Show all work and intermediate steps\n- Explain the rationale for each step\n- Highlight key assumptions\n- Note any limitations\n- Consider edge cases",
+        enabled: true,
+        placeholder: "Specify any constraints or requirements for the reasoning process...",
+      },
+      {
+        ...blockConfigs.examples,
+        label: "Similar Problems",
+        content: "",
+        enabled: true,
+        placeholder: "Provide examples of similar problems and their step-by-step solutions...",
+      },
+      {
+        ...blockConfigs.format,
+        label: "Solution Format",
+        content: "Structure the solution as follows:\n1. Problem Understanding\n2. Key Information Extracted\n3. Step-by-Step Reasoning\n4. Intermediate Results\n5. Final Conclusion\n6. Confidence Level\n7. Alternative Approaches Considered",
+        enabled: true,
+      }
+    ],
+  },
+  {
+    id: "summarization",
+    name: "Text Summarization",
+    description: "Template for generating concise, accurate summaries of longer texts",
+    blocks: [
+      {
+        ...blockConfigs.context,
+        label: "Source Text",
+        content: "",
+        enabled: true,
+        placeholder: "Paste the text to be summarized...",
+      },
+      {
+        ...blockConfigs.task,
+        label: "Summarization Goals",
+        content: "",
+        enabled: true,
+        placeholder: "Specify what aspects to focus on, desired length, and key points to include...",
+      },
+      {
+        ...blockConfigs.audience,
+        label: "Target Audience",
+        content: "",
+        enabled: true,
+        placeholder: "Define who will read this summary and their knowledge level...",
+      },
+      {
+        ...blockConfigs.constraints,
+        label: "Summary Requirements",
+        content: "",
+        enabled: true,
+        placeholder: "List requirements like word count, style, key terms to include/exclude...",
+      },
+      {
+        ...blockConfigs.format,
+        label: "Summary Structure",
+        content: "Please structure the summary as follows:\n1. Main Idea (1-2 sentences)\n2. Key Points (3-5 bullets)\n3. Supporting Details\n4. Conclusion\n5. Source Attribution",
+        enabled: true,
       }
     ],
   }
