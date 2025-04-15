@@ -192,7 +192,7 @@ export default function PromptBuilder() {
   }
 
   return (
-    //<div className="w-full py-8 px-4 sm:px-6 md:px-8">
+    <div className="w-full py-8 px-4 sm:px-6 md:px-8">
       <div className="absolute top-4 left-4 z-10">
         <TooltipProvider>
           <Tooltip>
@@ -212,6 +212,7 @@ export default function PromptBuilder() {
           </Tooltip>
         </TooltipProvider>
       </div>
+</div>
       
       <div className="flex justify-end gap-2 mb-4">
         <Dialog>
@@ -355,6 +356,5 @@ export default function PromptBuilder() {
           {assemblePrompt() || "Your prompt will appear here as you build it..."}
         </pre>
       </div>
-    </div>
   )
 }
