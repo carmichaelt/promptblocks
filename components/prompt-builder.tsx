@@ -192,7 +192,7 @@ export default function PromptBuilder() {
   }
 
   return (
-    <div className="w-full py-8 px-4 sm:px-6 md:px-8">
+    //<div className="w-full py-8 px-4 sm:px-6 md:px-8">
       <div className="absolute top-4 left-4 z-10">
         <TooltipProvider>
           <Tooltip>
