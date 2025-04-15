@@ -247,7 +247,7 @@ export default function PromptBuilder() {
         <h1 className="text-4xl font-bold mb-2 bg-clip-text text-transparent bg-gradient-to-r from-purple-600 via-pink-500 to-amber-500">
           PromptBlocks
         </h1>
-        <p className="text-slate-700 dark:text-slate-300">Build powerful AI prompts by assembling specialized blocks</p>
+        <p className="font-bold mb-2 bg-clip-text text-transparent bg-gradient-to-r from-purple-600 via-pink-500 to-amber-500">Build powerful AI prompts by assembling specialized blocks</p>
       </motion.div>
 
       <div className="flex justify-between items-center mb-6">
