@@ -25,7 +25,7 @@ import { cn } from "@/lib/utils"
 import { promptTemplates } from "@/lib/prompt-config"
 import type { PromptBlock, PromptTemplate } from "@/types/prompt-types"
 import PromptBlockComponent from "./prompt-block"
-import BlockConnection from "./block-connection"
+//import BlockConnection from "./block-connection"
 import KeyboardShortcutsGuide from "./keyboard-shortcuts-guide"
 
 interface SpeechRecognition extends EventTarget {
@@ -313,14 +313,14 @@ export default function PromptBuilder() {
                 />
               </div>
 
-              {/* Block connections */}
+              {/* Block connections }
               {index < blocks.length - 1 && blockContainerRefs.current[index] && blockContainerRefs.current[index + 1] && (
                 <BlockConnection
                   startElement={blockContainerRefs.current[index]!}
                   endElement={blockContainerRefs.current[index + 1]!}
                   isEnabled={block.enabled && blocks[index + 1].enabled}
                 />
-              )}
+              )}*/
 
               {/* Arrow indicator between blocks */}
               {index < blocks.length - 1 && (
