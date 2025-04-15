@@ -277,3 +277,25 @@
   z-index: 1;
   background: inherit;
 }
+
+/* Custom Select styles */
+.select-trigger {
+  @apply relative w-full cursor-pointer rounded-lg border border-slate-200 bg-white px-3 py-2 text-left text-sm;
+  @apply focus:outline-none focus:ring-2 focus:ring-purple-500/50;
+  @apply dark:border-slate-700 dark:bg-slate-800;
+}
+
+.select-content {
+  @apply bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-lg;
+  @apply animate-in fade-in-80 zoom-in-95;
+}
+
+.select-item {
+  @apply relative flex w-full cursor-pointer select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none;
+  @apply focus:bg-purple-50 focus:text-purple-900 dark:focus:bg-purple-900/10 dark:focus:text-purple-400;
+  @apply data-[disabled]:pointer-events-none data-[disabled]:opacity-50;
+}
+
+.select-item[data-state="checked"] {
+  @apply bg-purple-50 text-purple-900 dark:bg-purple-900/10 dark:text-purple-400;
+}

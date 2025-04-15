@@ -3,7 +3,13 @@
 import { useState, useEffect, useRef } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { Copy, Settings, ChevronDown, Book } from "lucide-react"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -245,28 +251,32 @@ export default function PromptBuilder() {
       </motion.div>
 
       <div className="flex justify-between items-center mb-6">
-        <Tabs defaultValue="general" value={activeTemplate} onValueChange={setActiveTemplate} className="w-full">
-          <TabsList className="grid grid-cols-4 mb-4 bg-white/90 dark:bg-slate-800/90 p-1 rounded-lg">
-            {promptTemplates.map((template: PromptTemplate) => (
-              <TabsTrigger 
-                key={template.id} 
-                value={template.id}
-                className="data-[state=active]:bg-purple-600 data-[state=active]:text-white dark:data-[state=active]:text-white data-[state=active]:shadow-sm"
-              >
-                {template.name}
-              </TabsTrigger>
-            ))}
-          </TabsList>
-
+        <div className="w-full max-w-xs">
+          <Select value={activeTemplate} onValueChange={setActiveTemplate}>
+            <SelectTrigger className="w-full bg-white/90 dark:bg-slate-800/90">
+              <SelectValue placeholder="Select a template" />
+            </SelectTrigger>
+            <SelectContent>
+              {promptTemplates.map((template: PromptTemplate) => (
+                <SelectItem 
+                  key={template.id} 
+                  value={template.id}
+                  className="cursor-pointer"
+                >
+                  {template.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          
           {promptTemplates.map((template: PromptTemplate) => (
-            <TabsContent key={template.id} value={template.id} className="mt-0">
-              <div className="bg-white/90 dark:bg-slate-800/90 rounded-lg p-4 mb-4 shadow-sm">
-                <h2 className="text-lg font-medium mb-2">{template.name}</h2>
+            template.id === activeTemplate && (
+              <div key={template.id} className="mt-4 bg-white/90 dark:bg-slate-800/90 rounded-lg p-4 shadow-sm">
                 <p className="text-sm text-slate-700 dark:text-slate-300">{template.description}</p>
               </div>
-            </TabsContent>
+            )
           ))}
-        </Tabs>
+        </div>
       </div>
 
       <div className="space-y-8 mb-8">
