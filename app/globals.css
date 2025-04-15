@@ -83,37 +83,27 @@
   }
 }
 
-/* Background image styles */
+/* Background styles */
 .blocks-bg {
-  background-image: url("https://images.unsplash.com/photo-1642944267662-dacacac1132c?q=80&w=2500&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D");
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
+  background: linear-gradient(to bottom right, #1e1b4b, #4c1d95);
   position: relative;
+  overflow: hidden;
 }
 
-.blocks-bg::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5); /* Dark overlay for better contrast */
-  z-index: 0;
-}
-
+/* Enhanced glass container effect */
 .glass-container {
-  background: rgba(255, 255, 255, 0.8);
-  backdrop-filter: blur(12px);
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(16px);
   border: 1px solid rgba(255, 255, 255, 0.2);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.2),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.1);
   z-index: 1;
   position: relative;
 }
 
 .dark .glass-container {
-  background: rgba(30, 41, 59, 0.8);
+  background: rgba(30, 41, 59, 0.2);
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
@@ -145,4 +135,36 @@
 
 .arrow-icon {
   animation: pulse-arrow 2s ease-in-out infinite;
+}
+
+/* Enhanced block animations */
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.floating {
+  animation: float 6s ease-in-out infinite;
+}
+
+/* Leader Line styles */
+.leader-line {
+  z-index: 0;
+}
+
+/* Ensure blocks are above leader lines */
+.prompt-block {
+  position: relative;
+  z-index: 1;
+  background: inherit;
+}
+
+/* Container for leader lines */
+.leader-line-container {
+  position: relative;
+  width: 100%;
 }

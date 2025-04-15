@@ -5,4 +5,23 @@ export interface PromptBlock {
   placeholder: string
   description: string
   enabled: boolean
+  bestPractices: string[]
+  examples: string[]
+  title: string
+  defaultContent?: string
+}
+
+export interface RoleTemplate {
+  id: string
+  label: string
+  description: string
+  expertise: string[]
+  systemPrompt: string
+}
+
+export interface PromptTemplate {
+  id: string
+  name: string
+  description: string
+  blocks: PromptBlock[]
 }

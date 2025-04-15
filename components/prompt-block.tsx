@@ -1,7 +1,7 @@
 "use client"
 
-import { forwardRef, useState } from "react"
-import { motion } from "framer-motion"
+import { forwardRef, useState, useRef } from "react"
+import { motion, AnimatePresence } from "framer-motion"
 import { Sparkles, Info, Mic, MicOff } from "lucide-react"
 import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
@@ -11,7 +11,9 @@ import { cn } from "@/lib/utils"
 import type { PromptBlock } from "@/types/prompt-types"
 import AIPromptDialog from "./ai-prompt-dialog"
 import LoadingSparkles from "./loading-sparkles"
-import { generateBlockContent } from "@/app/actions"
+import ParticleEffect from "./particle-effect"
+import { experimental_useObject as useObject } from 'ai/react'
+import { blockContentSchema } from '@/app/api/block-content/schema'
 
 interface PromptBlockProps {
   block: PromptBlock
@@ -28,7 +30,21 @@ interface PromptBlockProps {
 const PromptBlockComponent = forwardRef<HTMLTextAreaElement, PromptBlockProps>(
   ({ block, index, isFocused, isDisabled, onChange, onFocus, onToggle, isRecording, onRecordingToggle }, ref) => {
     const [isAIDialogOpen, setIsAIDialogOpen] = useState(false)
-    const [isGenerating, setIsGenerating] = useState(false)
+    const [particlePosition, setParticlePosition] = useState<{ x: number; y: number } | null>(null)
+    const blockRef = useRef<HTMLDivElement>(null)
+
+    const { object, isLoading: isGenerating, submit, error } = useObject({
+      api: '/api/block-content',
+      schema: blockContentSchema,
+      onFinish: ({ object }) => {
+        if (object) {
+          onChange(object.content)
+        }
+      },
+      onError: (error) => {
+        console.error("Error generating content:", error)
+      }
+    })
 
     const blockColors = {
       context: "border-blue-300 bg-blue-50/90 dark:border-blue-700 dark:bg-blue-950/80",
@@ -42,26 +58,29 @@ const PromptBlockComponent = forwardRef<HTMLTextAreaElement, PromptBlockProps>(
     }
 
     const handleAIClick = async () => {
+      if (!blockRef.current) return
+
+      const rect = blockRef.current.getBoundingClientRect()
+      const x = rect.left + rect.width / 2
+      const y = rect.top + rect.height / 2
+      setParticlePosition({ x, y })
+
       if (!block.content.trim()) {
         setIsAIDialogOpen(true)
       } else {
-        setIsGenerating(true)
-        try {
-          const result = await generateBlockContent(block.type, block.label, "Improve this content", block.content)
-
-          if (result.success) {
-            onChange(result.content)
-          }
-        } catch (error) {
-          console.error("Error enhancing content:", error)
-        } finally {
-          setIsGenerating(false)
-        }
+        submit({
+          blockType: block.type,
+          blockLabel: block.label,
+          userPrompt: "Improve this content",
+          existingContent: block.content
+        })
+        setTimeout(() => setParticlePosition(null), 1000)
       }
     }
 
     return (
       <motion.div
+        ref={blockRef}
         whileHover={{ scale: 1.01 }}
         whileTap={{ scale: 0.99 }}
         className={cn(
@@ -70,6 +89,10 @@ const PromptBlockComponent = forwardRef<HTMLTextAreaElement, PromptBlockProps>(
           isFocused && "ring-2 ring-offset-2 ring-slate-300 dark:ring-slate-600",
         )}
       >
+        <AnimatePresence>
+          {particlePosition && <ParticleEffect x={particlePosition.x} y={particlePosition.y} />}
+        </AnimatePresence>
+
         <div className="mb-2 flex justify-between items-center">
           <div className="flex items-center gap-2">
             <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
@@ -161,20 +184,7 @@ const PromptBlockComponent = forwardRef<HTMLTextAreaElement, PromptBlockProps>(
         <AIPromptDialog
           open={isAIDialogOpen}
           onOpenChange={setIsAIDialogOpen}
-          onGenerate={async (prompt) => {
-            setIsGenerating(true)
-            try {
-              const result = await generateBlockContent(block.type, block.label, prompt)
-
-              if (result.success) {
-                onChange(result.content)
-              }
-            } catch (error) {
-              console.error("Error generating content:", error)
-            } finally {
-              setIsGenerating(false)
-            }
-          }}
+          onGenerate={(content) => onChange(content)}
           blockType={block.type}
           blockLabel={block.label}
         />

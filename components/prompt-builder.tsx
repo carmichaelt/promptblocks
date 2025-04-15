@@ -16,16 +16,30 @@ import {
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { toast } from "@/components/ui/use-toast"
 import { cn } from "@/lib/utils"
-import { promptTemplates } from "@/lib/prompt-templates"
-import type { PromptBlock } from "@/types/prompt-types"
+import { promptTemplates } from "@/lib/prompt-config"
+import type { PromptBlock, PromptTemplate } from "@/types/prompt-types"
 import PromptBlockComponent from "./prompt-block"
+import BlockConnection from "./block-connection"
 import KeyboardShortcutsGuide from "./keyboard-shortcuts-guide"
 
-// Declare SpeechRecognition
+interface SpeechRecognition extends EventTarget {
+  continuous: boolean;
+  interimResults: boolean;
+  onresult: (event: any) => void;
+  onerror: (event: any) => void;
+  start: () => void;
+  stop: () => void;
+}
+
+interface SpeechRecognitionConstructor {
+  new (): SpeechRecognition;
+  prototype: SpeechRecognition;
+}
+
 declare global {
   interface Window {
-    SpeechRecognition: SpeechRecognition
-    webkitSpeechRecognition: SpeechRecognition
+    SpeechRecognition: SpeechRecognitionConstructor;
+    webkitSpeechRecognition: SpeechRecognitionConstructor;
   }
 }
 
@@ -36,10 +50,11 @@ export default function PromptBuilder() {
   const [focusedBlockIndex, setFocusedBlockIndex] = useState<number | null>(null)
   const recognitionRef = useRef<SpeechRecognition | null>(null)
   const blockRefs = useRef<(HTMLTextAreaElement | null)[]>([])
+  const blockContainerRefs = useRef<(HTMLDivElement | null)[]>([])
 
   // Initialize blocks from template
   useEffect(() => {
-    const template = promptTemplates.find((t) => t.id === activeTemplate)
+    const template = promptTemplates.find((t: PromptTemplate) => t.id === activeTemplate)
     if (template) {
       setBlocks(template.blocks)
     }
@@ -232,14 +247,14 @@ export default function PromptBuilder() {
       <div className="flex justify-between items-center mb-6">
         <Tabs defaultValue="general" value={activeTemplate} onValueChange={setActiveTemplate} className="w-full">
           <TabsList className="grid grid-cols-4 mb-4">
-            {promptTemplates.map((template) => (
+            {promptTemplates.map((template: PromptTemplate) => (
               <TabsTrigger key={template.id} value={template.id}>
                 {template.name}
               </TabsTrigger>
             ))}
           </TabsList>
 
-          {promptTemplates.map((template) => (
+          {promptTemplates.map((template: PromptTemplate) => (
             <TabsContent key={template.id} value={template.id} className="mt-0">
               <div className="bg-white/90 dark:bg-slate-800/90 rounded-lg p-4 mb-4 shadow-sm">
                 <h2 className="text-lg font-medium mb-2">{template.name}</h2>
@@ -250,8 +265,6 @@ export default function PromptBuilder() {
         </Tabs>
       </div>
 
-      
-
       <div className="space-y-8 mb-8">
         <AnimatePresence>
           {blocks.map((block, index) => (
@@ -261,6 +274,11 @@ export default function PromptBuilder() {
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: 20 }}
               transition={{ duration: 0.3, delay: index * 0.1 }}
+              ref={(el) => {
+                if (el) {
+                  blockContainerRefs.current[index] = el as HTMLDivElement
+                }
+              }}
             >
               <div className={cn("transition-opacity", !block.enabled && "opacity-50")}>
                 <PromptBlockComponent
@@ -273,9 +291,22 @@ export default function PromptBuilder() {
                   onToggle={() => toggleBlockEnabled(index)}
                   isRecording={recordingBlockIndex === index}
                   onRecordingToggle={() => toggleRecording(index)}
-                  ref={(el) => (blockRefs.current[index] = el)}
+                  ref={(el) => {
+                    if (el) {
+                      blockRefs.current[index] = el
+                    }
+                  }}
                 />
               </div>
+
+              {/* Block connections */}
+              {index < blocks.length - 1 && blockContainerRefs.current[index] && blockContainerRefs.current[index + 1] && (
+                <BlockConnection
+                  startElement={blockContainerRefs.current[index]!}
+                  endElement={blockContainerRefs.current[index + 1]!}
+                  isEnabled={block.enabled && blocks[index + 1].enabled}
+                />
+              )}
 
               {/* Arrow indicator between blocks */}
               {index < blocks.length - 1 && (
