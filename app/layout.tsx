@@ -1,9 +1,9 @@
 import type React from "react"
 import type { Metadata } from "next"
 import "./globals.css"
-import ThemeToggle from "@/components/theme-toggle"
 import { Toaster } from "@/components/ui/toaster"
 import { AnimatedGridPattern } from "@/components/ui/animated-grid-pattern"
+import { AppNav } from "@/components/app-nav"
 import { cn } from "@/lib/utils"
 
 export const metadata: Metadata = {
@@ -29,8 +29,10 @@ export default function RootLayout({
             "inset-x-0 inset-y-[-30%] h-[200%] skew-y-12",
           )}
         />
-        {children}
-        <ThemeToggle />
+        <AppNav />
+        <main className="min-h-screen pt-8">
+          {children}
+        </main>
         <Toaster />
       </body>
     </html>

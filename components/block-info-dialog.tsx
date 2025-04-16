@@ -56,7 +56,7 @@ export default function BlockInfoDialog({
                   {blockConfig.examples.map((example, index) => (
                     <div
                       key={index}
-                      className="text-sm bg-slate-50 dark:bg-slate-800 p-3 rounded border border-slate-200 dark:border-slate-700 font-mono text-xs"
+                      className="text-sm bg-slate-50 dark:bg-slate-800 p-3 rounded border border-slate-200 dark:border-slate-700 font-mono"
                     >
                       {example}
                     </div>

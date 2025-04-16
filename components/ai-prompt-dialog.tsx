@@ -125,7 +125,7 @@ export default function AIPromptDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Sparkles size={18} className="text-purple-500" />
-            Generate {blockLabel} Content
+            Need help with {blockLabel}?
           </DialogTitle>
           <DialogDescription>
             Get AI assistance in creating high-quality content for your {blockTemplate?.title.toLowerCase()}.
@@ -133,10 +133,9 @@ export default function AIPromptDialog({
         </DialogHeader>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid grid-cols-3 mb-4">
+          <TabsList className="grid grid-cols-2 mb-4">
             <TabsTrigger value="guidance">Guidance</TabsTrigger>
             <TabsTrigger value="examples">Examples</TabsTrigger>
-            <TabsTrigger value="experts">Expert Roles</TabsTrigger>
           </TabsList>
 
           <TabsContent value="guidance" className="space-y-4">
@@ -176,65 +175,20 @@ export default function AIPromptDialog({
               <p className="text-xs text-slate-500 mt-2">Click any example to use it as a starting point</p>
             </div>
           </TabsContent>
-
-          <TabsContent value="experts" className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              {roleTemplates.map((role) => (
-                <div
-                  key={role.id}
-                  onClick={() => handleRoleSelect(role)}
-                  className={`p-3 rounded-lg border cursor-pointer transition-all ${
-                    selectedRole?.id === role.id
-                      ? "border-purple-500 bg-purple-50 dark:bg-purple-900/20"
-                      : "border-slate-200 dark:border-slate-700 hover:border-purple-300 dark:hover:border-purple-700"
-                  }`}
-                >
-                  <div className="flex justify-between items-start">
-                    <h3 className="font-medium">{role.label}</h3>
-                    {selectedRole?.id === role.id && (
-                      <Badge variant="secondary" className="ml-2">
-                        Selected
-                      </Badge>
-                    )}
-                  </div>
-                  <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">{role.description}</p>
-                  <div className="flex flex-wrap gap-1 mt-2">
-                    {role.expertise.map((skill) => (
-                      <Badge key={skill} variant="outline" className="text-xs">
-                        {skill}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </TabsContent>
         </Tabs>
 
         <div className="grid gap-2 mt-4">
           <div className="flex items-center justify-between">
             <h3 className="text-sm font-medium">Your Request</h3>
-            {selectedRole && (
-              <Badge variant="outline" className="text-xs">
-                {selectedRole.label}
-              </Badge>
-            )}
           </div>
           <Textarea
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
-            placeholder={
-              selectedRole
-                ? `Describe what you want the ${selectedRole.label.toLowerCase()} to help you create...`
-                : `Select an expert role above and describe what you want to create...`
-            }
+            placeholder={`Describe what ${blockTemplate?.title} you need help with...`}
             className="min-h-32 font-mono text-sm"
           />
           <p className="text-xs text-muted-foreground">
-            Using {selectedModel} to generate content.{" "}
-            {selectedRole
-              ? `The ${selectedRole.label} will help optimize your ${blockType} content.`
-              : "Select an expert role for specialized assistance."}
+            The more specific you are, the better the results will be
           </p>
         </div>
 
@@ -245,10 +199,10 @@ export default function AIPromptDialog({
           <Button
             type="button"
             onClick={handleGenerate}
-            disabled={!prompt.trim() || !selectedRole || isGenerating}
+            disabled={!prompt.trim() || isGenerating}
             className="bg-purple-600 hover:bg-purple-700"
           >
-            {isGenerating ? "Generating..." : "Generate with Expert"}
+            {isGenerating ? "Generating..." : "Generate"}
           </Button>
         </DialogFooter>
       </DialogContent>

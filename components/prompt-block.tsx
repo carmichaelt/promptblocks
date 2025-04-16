@@ -30,6 +30,7 @@ interface PromptBlockProps {
   onDragStart?: () => void
   onDragEnd?: () => void
   selectedModel: string
+  isAwaitingGeneration: boolean
 }
 
 const PromptBlockComponent = forwardRef<HTMLTextAreaElement, PromptBlockProps>(
@@ -47,6 +48,7 @@ const PromptBlockComponent = forwardRef<HTMLTextAreaElement, PromptBlockProps>(
       onDragStart,
       onDragEnd,
       selectedModel,
+      isAwaitingGeneration,
     },
     ref,
   ) => {
@@ -54,6 +56,7 @@ const PromptBlockComponent = forwardRef<HTMLTextAreaElement, PromptBlockProps>(
     const [isInfoDialogOpen, setIsInfoDialogOpen] = useState(false)
     const [particlePosition, setParticlePosition] = useState<{ x: number; y: number } | null>(null)
     const [showSuggestion, setShowSuggestion] = useState(false)
+    const isOptional = block.label.includes("(Optional)")
     const blockRef = useRef<HTMLDivElement>(null)
 
     const {
@@ -92,6 +95,8 @@ const PromptBlockComponent = forwardRef<HTMLTextAreaElement, PromptBlockProps>(
       tone: "border-cyan-300 bg-cyan-50/90 dark:border-cyan-700 dark:bg-cyan-950/80",
     }
 
+    const showLoadingOverlay = isGenerating || isAwaitingGeneration
+
     const blockConfig = blockConfigs[block.type]
 
     const handleAIClick = async () => {
@@ -127,7 +132,8 @@ const PromptBlockComponent = forwardRef<HTMLTextAreaElement, PromptBlockProps>(
           "rounded-lg border-l-4 p-4 transition-all shadow-md",
           blockColors[block.type as keyof typeof blockColors],
           isFocused && "ring-2 ring-offset-2 ring-slate-300 dark:ring-slate-600",
-          !block.enabled && "opacity-50",
+          !block.enabled && "opacity-60",
+          isOptional && !block.enabled && "bg-slate-50/50 dark:bg-slate-900/50 border-slate-200 dark:border-slate-700",
         )}
       >
         <AnimatePresence>
@@ -229,6 +235,7 @@ const PromptBlockComponent = forwardRef<HTMLTextAreaElement, PromptBlockProps>(
             isDisabled && "cursor-not-allowed",
             isGenerating && "opacity-50",
             !block.enabled && "cursor-not-allowed bg-slate-50 dark:bg-slate-800",
+            isOptional && !block.enabled && "bg-slate-100 dark:bg-slate-800"
           )}
         />
 
@@ -255,8 +262,8 @@ const PromptBlockComponent = forwardRef<HTMLTextAreaElement, PromptBlockProps>(
           )}
         </AnimatePresence>
 
-        {isGenerating && (
-          <div className="absolute inset-0 flex items-center justify-center bg-white/80 dark:bg-slate-900/80 rounded-md">
+        {showLoadingOverlay && (
+          <div className="absolute inset-0 flex items-center justify-center bg-white/70 dark:bg-slate-900/70 rounded-lg pointer-events-none">
             <LoadingSparkles />
           </div>
         )}

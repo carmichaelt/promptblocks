@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { Copy, Settings, ChevronDown, Book, Save, Share2, Sparkles, History, Download, Upload, KeyboardIcon, InfoIcon } from "lucide-react"
+import { Copy, Settings, ChevronDown, Book, Save, Share2, Sparkles, History, Download, Upload, KeyboardIcon, InfoIcon, Check, Badge } from "lucide-react"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Button } from "@/components/ui/button"
 import {
@@ -27,6 +27,9 @@ import AIModelSelector from "./ai-model-selector"
 import OnboardingTour from "./onboarding-tour"
 import { Textarea } from "@/components/ui/textarea"
 import { ScrollArea } from "@/components/ui/scroll-area"
+import { PromptSuggestion } from "@/components/ui/prompt-suggestion"
+import { IconButtonGroup, IconButton } from "@/components/ui/icon-button-group"
+import { Navbar } from "@/components/navbar"
 
 interface SpeechRecognition extends EventTarget {
   continuous: boolean
@@ -74,17 +77,25 @@ export default function PromptBuilder({
   const [recordingBlockIndex, setRecordingBlockIndex] = useState<number | null>(null)
   const [focusedBlockIndex, setFocusedBlockIndex] = useState<number | null>(null)
   const [savedPromptsOpen, setSavedPromptsOpen] = useState(false)
+  const [historyDialogOpen, setHistoryDialogOpen] = useState(false)
   const [savedPrompts, setSavedPrompts] = useState<{ name: string; template: PromptTemplate }[]>([])
   const [isGeneratingAll, setIsGeneratingAll] = useState(false)
+  const [generatingBlockIndices, setGeneratingBlockIndices] = useState<number[]>([])
   // Use model from parent prop
   const [selectedModel, setSelectedModel] = useState(selectedModelFromParent)
   const [showTour, setShowTour] = useState(false)
-  const [promptHistory, setPromptHistory] = useState<{ timestamp: string; prompt: string }[]>([])
+  const [promptHistory, setPromptHistory] = useState<{ 
+    timestamp: string; 
+    prompt: string;
+    blocks: PromptBlock[];
+    template: string;
+  }[]>([])
   const [showGenerateAllDialog, setShowGenerateAllDialog] = useState(false)
   const [generateAllGoal, setGenerateAllGoal] = useState("")
+  const [isCopied, setIsCopied] = useState(false)
   const recognitionRef = useRef<SpeechRecognition | null>(null)
-  const blockRefs = useRef<(HTMLTextAreaElement | null)[]>([])
-  const blockContainerRefs = useRef<(HTMLDivElement | null)[]>([])
+  const blockRefs = useRef<Array<HTMLTextAreaElement | null>>([])
+  const blockContainerRefs = useRef<Array<HTMLDivElement | null>>([])
 
   // Initialize blocks from template or initial props
   useEffect(() => {
@@ -105,19 +116,23 @@ export default function PromptBuilder({
         // --- END DEBUG LOG ---
         setActiveTemplate(initialTemplateId);
       }
-    } else if (!initialBlocks && activeTemplate) {
-      // Fallback: If no initialBlocks are provided, load from the active template
-      const template = promptTemplates.find((t: PromptTemplate) => t.id === activeTemplate);
+    }
+  }, [initialBlocks, initialTemplateId]); // Remove activeTemplate dependency
+
+  // New effect to handle template changes
+  useEffect(() => {
+    // Only update blocks if we're not using initialBlocks
+    if (!initialBlocks || initialBlocks.length === 0) {
+      const template = promptTemplates.find((t) => t.id === activeTemplate);
       if (template) {
-        // --- DEBUG LOG --- 
-        console.log(`[PromptBuilder useEffect] Setting blocks from template: ${activeTemplate}`);
-        // --- END DEBUG LOG ---
+        console.log(`[PromptBuilder] Loading blocks from template: ${activeTemplate}`);
         setBlocks(template.blocks);
       }
     }
-    // Else: Keep existing blocks if neither condition is met (e.g., initial load without template/blocks)
+  }, [activeTemplate, initialBlocks]);
 
-    // Load saved prompts from localStorage
+  // Load saved prompts from localStorage
+  useEffect(() => {
     const savedPromptsData = localStorage.getItem("savedPrompts")
     if (savedPromptsData) {
       try {
@@ -134,16 +149,25 @@ export default function PromptBuilder({
       localStorage.setItem("hasVisitedBefore", "true")
     }
 
-    // Load prompt history
+    // Load prompt history with safe parsing
     const historyData = localStorage.getItem("promptHistory")
     if (historyData) {
       try {
-        setPromptHistory(JSON.parse(historyData))
+        const parsedHistory = JSON.parse(historyData)
+        // Ensure each history item has the required properties
+        const validatedHistory = parsedHistory.map((item: any) => ({
+          timestamp: item.timestamp || new Date().toISOString(),
+          prompt: item.prompt || "",
+          blocks: Array.isArray(item.blocks) ? item.blocks : [],
+          template: item.template || "general"
+        })).filter((item: any) => item.prompt) // Only keep items with actual prompts
+        setPromptHistory(validatedHistory)
       } catch (e) {
         console.error("Failed to parse prompt history", e)
+        setPromptHistory([]) // Reset to empty array on error
       }
     }
-  }, [activeTemplate, initialBlocks, initialTemplateId])
+  }, [])
 
   // Sync model state with parent
   useEffect(() => {
@@ -276,10 +300,16 @@ export default function PromptBuilder({
     const prompt = assemblePrompt()
     navigator.clipboard.writeText(prompt)
 
-    // Add to history
+    // Set copied state and reset after 2 seconds
+    setIsCopied(true)
+    setTimeout(() => setIsCopied(false), 2000)
+
+    // Add to history with blocks and template
     const newHistoryItem = {
       timestamp: new Date().toISOString(),
       prompt,
+      blocks: [...blocks],
+      template: activeTemplate
     }
 
     const updatedHistory = [newHistoryItem, ...promptHistory].slice(0, 10) // Keep only last 10
@@ -292,11 +322,31 @@ export default function PromptBuilder({
     })
   }
 
+  // Function to load a prompt from history
+  const loadFromHistory = (historyItem: typeof promptHistory[0]) => {
+    if (!historyItem) return; // Safety check
+    
+    // Set blocks first, then template to avoid race condition
+    setBlocks(historyItem.blocks || [])
+    // Use setTimeout to ensure blocks are set before changing template
+    setTimeout(() => {
+      setActiveTemplate(historyItem.template || "general")
+    }, 0)
+    
+    // Close the history dialog
+    setHistoryDialogOpen(false)
+    
+    toast({
+      title: "Prompt Loaded",
+      description: "Historical prompt has been loaded successfully",
+    })
+  }
+
   const saveCurrentPrompt = (name: string) => {
     const newSavedPrompt = {
       name,
       template: {
-        id: `custom-${Date.now()}`,
+        id: activeTemplate,
         name,
         description: "Custom saved prompt",
         blocks: [...blocks],
@@ -315,6 +365,7 @@ export default function PromptBuilder({
 
   const loadSavedPrompt = (template: PromptTemplate) => {
     setBlocks(template.blocks)
+    setActiveTemplate(template.id)
     setSavedPromptsOpen(false)
 
     toast({
@@ -343,19 +394,21 @@ export default function PromptBuilder({
     
     setShowGenerateAllDialog(false) // Close the dialog
     setIsGeneratingAll(true)
-    toast({ title: "Starting Generation", description: `Generating content for template '${activeTemplate}' using ${selectedModel}...` })
 
     // Identify initially empty enabled blocks to update later
-    const initiallyEmptyEnabledBlockIndices = blocks
+    const indicesToGenerate = blocks
       .map((block, index) => ({ ...block, index }))
       .filter((block) => block.enabled && !block.content.trim())
       .map((block) => block.index)
 
-    if (initiallyEmptyEnabledBlockIndices.length === 0) {
+    if (indicesToGenerate.length === 0) {
       toast({ title: "No Empty Blocks", description: "All enabled blocks already have content." })
       setIsGeneratingAll(false)
       return
     }
+
+    setGeneratingBlockIndices(indicesToGenerate) // Set indices being generated
+    toast({ title: "Starting Generation", description: `Generating content for ${indicesToGenerate.length} blocks using ${selectedModel}...` })
 
     try {
       const response = await fetch("/api/all-blocks", {
@@ -389,7 +442,7 @@ export default function PromptBuilder({
 
           setBlocks((prevBlocks) =>
             prevBlocks.map((block, index) => {
-              if (initiallyEmptyEnabledBlockIndices.includes(index) && generatedBlocksMap[block.type]) {
+              if (indicesToGenerate.includes(index) && generatedBlocksMap[block.type]) {
                 return { ...block, content: generatedBlocksMap[block.type] }
               }
               return block
@@ -397,7 +450,7 @@ export default function PromptBuilder({
           )
 
           const updatedCount = Object.keys(generatedBlocksMap).filter((type) =>
-            blocks.some((b, i) => initiallyEmptyEnabledBlockIndices.includes(i) && b.type === type),
+            blocks.some((b, i) => indicesToGenerate.includes(i) && b.type === type),
           ).length
 
           toast({
@@ -420,6 +473,7 @@ export default function PromptBuilder({
       })
     } finally {
       setIsGeneratingAll(false)
+      setGeneratingBlockIndices([]) // Clear indices on finish/error
       setGenerateAllGoal("") // Clear the goal input after attempt
     }
   }
@@ -522,6 +576,42 @@ export default function PromptBuilder({
     input.click()
   }
 
+  // Function to handle scrolling to a specific block
+  const handleScrollToBlock = (index: number) => {
+    blockContainerRefs.current[index]?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    setTimeout(() => blockRefs.current[index]?.focus(), 300); // Delay focus slightly after scroll
+  };
+
+  // Helper function to render the assembled prompt with interactive labels
+  const renderAssembledPrompt = () => {
+    const assembledParts = blocks
+      .filter((block) => block.enabled)
+      .map((block, index) => {
+        const globalIndex = blocks.findIndex(b => b === block); // Find original index for refs
+        return (
+          <div key={globalIndex} className="mb-4 last:mb-0">
+            <button
+              className="text-left font-semibold text-purple-600 dark:text-purple-400 hover:underline focus:outline-none focus:ring-1 focus:ring-purple-500 rounded px-1 py-0.5 mb-1"
+              onClick={() => handleScrollToBlock(globalIndex)}
+              aria-label={`Go to ${block.label} block`}
+            >
+                {block.label}
+
+            </button>
+            <div>
+            <span className="whitespace-pre-wrap"> {block.content || <span className='italic text-slate-400 dark:text-slate-600'>empty</span>}</span>
+            </div>
+          </div>
+        )
+      });
+
+    if (assembledParts.length === 0) {
+      return <span className="italic text-slate-500 dark:text-slate-500">Your prompt will appear here as you build it...</span>;
+    }
+
+    return assembledParts;
+  };
+
   // Tour steps for onboarding
   interface TourStep {
     target: string
@@ -562,119 +652,35 @@ export default function PromptBuilder({
   // --- END DEBUG LOG ---
 
   return (
-    <div className="w-full py-8 px-4 sm:px-6 md:px-8">
-      {/* Controls Section */}
-      <div className="flex flex-col md:flex-row justify-between items-start gap-6 mb-8">
-        {/* Left Side: Template & Model Selection */}
-        <div className="w-full md:w-auto flex flex-col gap-4 flex-shrink-0 md:max-w-xs">
-          <div className="template-selector">
-            <Select value={activeTemplate} onValueChange={setActiveTemplate}>
-              <SelectTrigger className="w-full bg-white/90 dark:bg-slate-800/90 shadow-sm">
-                <SelectValue placeholder="Select a template" />
-              </SelectTrigger>
-              <SelectContent>
-                {promptTemplates.map((template: PromptTemplate) => (
-                  <SelectItem key={template.id} value={template.id} className="cursor-pointer">
-                    {template.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          {/* Template Description */}
-          {promptTemplates.map(
-            (template: PromptTemplate) =>
-              template.id === activeTemplate && (
-                <div key={`${template.id}-desc`} className="bg-white/90 dark:bg-slate-800/90 rounded-lg p-3 shadow-sm border border-slate-200 dark:border-slate-700">
-                  <p className="text-sm text-slate-600 dark:text-slate-400 italic">{template.description}</p>
-                </div>
-              ),
-          )}
-          {/* AI Model Selector */}
-          <div>
-            <AIModelSelector selectedModel={selectedModel} onModelChange={handleModelChange} />
-          </div>
-        </div>
+    <div className="w-full space-y-6">
+      <Navbar
+        activeTemplate={activeTemplate}
+        templates={promptTemplates}
+        onTemplateChange={setActiveTemplate}
+        onSaveLoad={() => setSavedPromptsOpen(true)}
+        onShare={sharePrompt}
+        onExport={exportPrompt}
+        onImport={importPrompt}
+        onGenerateAll={handleGenerateAllClick}
+        onCopy={copyPrompt}
+        isGenerating={isGeneratingAll}
+        isCopied={isCopied}
+      />
 
-        {/* Right Side: Action Buttons - Grouped */}
-        <div className="w-full md:w-auto flex flex-wrap justify-start md:justify-end items-start gap-2">
-            {/* Management & Generation Buttons */}
-            <Button
-              variant="outline"
-              size="sm"
-              className="bg-white/90 dark:bg-slate-800/90 shimmer-button shadow-sm"
-              onClick={() => setSavedPromptsOpen(true)}
-            >
-              <Save size={16} className="mr-2" />
-              Save/Load
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              className="bg-white/90 dark:bg-slate-800/90 shimmer-button shadow-sm"
-              onClick={sharePrompt}
-            >
-              <Share2 size={16} className="mr-2" />
-              Share
-            </Button>
-             <Button
-              variant="outline"
-              size="sm"
-              className="bg-white/90 dark:bg-slate-800/90 shimmer-button shadow-sm"
-              onClick={exportPrompt}
-            >
-              <Download size={16} className="mr-2" />
-              Export
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              className="bg-white/90 dark:bg-slate-800/90 shimmer-button shadow-sm"
-              onClick={importPrompt}
-            >
-              <Upload size={16} className="mr-2" />
-              Import
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              className="bg-white/90 dark:bg-slate-800/90 shimmer-button ai-button shadow-sm"
-              onClick={handleGenerateAllClick}
-              disabled={isGeneratingAll}
-            >
-              <Sparkles size={16} className="mr-2" />
-              {isGeneratingAll ? "Generating..." : "Generate All Empty"}
-            </Button>
-            {/* Utility Buttons */}
-            <Dialog>
-              <DialogTrigger asChild>
-                <Button variant="outline" size="sm" className="bg-white/90 dark:bg-slate-800/90 shadow-sm">
-                  <InfoIcon size={16} className="mr-2" />
-                  Shortcuts
-                </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Keyboard Shortcuts</DialogTitle>
-                  <DialogDescription>
-                    Use these shortcuts to navigate the prompt builder more efficiently.
-                  </DialogDescription>
-                </DialogHeader>
-                <KeyboardShortcutsGuide />
-              </DialogContent>
-            </Dialog>
-            {/* Primary Action Button */}
-            <Button onClick={copyPrompt} size="sm" className="bg-purple-600 hover:bg-purple-700 text-white shadow-sm">
-              <Copy size={16} className="mr-2" />
-              Copy Full Prompt
-            </Button>
-        </div>
-      </div>
+      {/* Template Description */}
+      {promptTemplates.map(
+        (template: PromptTemplate) =>
+          template.id === activeTemplate && (
+            <div key={`${template.id}-desc`} className="bg-white/90 dark:bg-slate-800/90 rounded-lg p-3 shadow-sm border border-slate-200 dark:border-slate-700 mx-4">
+              <p className="text-sm text-slate-600 dark:text-slate-400 italic">{template.description}</p>
+            </div>
+          ),
+      )}
 
-      {/* Main Content Area: Responsive Two-Column Layout */}
-      <div className="flex flex-col lg:flex-row gap-8">
+      {/* Main Content Area */}
+      <div className="flex flex-col lg:flex-row gap-8 px-4">
         {/* Left Column: Prompt Blocks */}
-        <div className="lg:w-1/2 space-y-8">
+        <div className="lg:w-1/2 space-y-6">
           <AnimatePresence>
             {blocks.map((block, index) => (
               <motion.div
@@ -696,6 +702,7 @@ export default function PromptBuilder({
                     index={index}
                     isFocused={focusedBlockIndex === index}
                     isDisabled={!block.enabled}
+                    isAwaitingGeneration={generatingBlockIndices.includes(index)}
                     onChange={(content) => updateBlockContent(index, content)}
                     onFocus={() => setFocusedBlockIndex(index)}
                     onToggle={() => toggleBlockEnabled(index)}
@@ -710,93 +717,34 @@ export default function PromptBuilder({
                   />
                 </div>
 
-                {/* Arrow indicator between blocks */}
-                {index < blocks.length - 1 && (
-                  <div className="flex justify-center my-4">
-                    <motion.div
-                      initial={{ opacity: 0, y: -5 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.2 + index * 0.1 }}
-                      className={cn(
-                        "w-8 h-8 rounded-full bg-white/80 dark:bg-slate-800/80 flex items-center justify-center shadow-sm",
-                        (!block.enabled || !blocks[index + 1].enabled) && "opacity-40",
-                      )}
-                    >
-                      <ChevronDown className="h-5 w-5 text-slate-500 dark:text-slate-400 arrow-icon" />
-                    </motion.div>
-                  </div>
-                )}
               </motion.div>
             ))}
           </AnimatePresence>
         </div>
 
-        {/* Right Column: Assembled Prompt (Sticky on Large Screens) */}
-        <div className="lg:w-1/2 lg:sticky lg:top-8 h-fit">
+        {/* Right Column: Assembled Prompt */}
+        <div className="lg:w-1/2 lg:sticky lg:top-24 h-fit">
           <div className="bg-white/90 dark:bg-slate-800/90 rounded-lg p-6 shadow-sm pulse-container assembled-prompt">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-bold">Assembled Prompt</h2>
-              <div className="flex gap-2">
-                <Dialog>
-                  <DialogTrigger asChild>
-                    <Button variant="outline" size="sm" className="bg-white/90 dark:bg-slate-800/90">
-                      <History size={16} className="mr-2" />
-                      History
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent>
-                    <DialogHeader>
-                      <DialogTitle>Prompt History</DialogTitle>
-                      <DialogDescription>Your recent prompts are saved here. Click one to copy it.</DialogDescription>
-                    </DialogHeader>
-                    <div className="mt-4 space-y-2 max-h-[400px] overflow-y-auto pr-2">
-                      {promptHistory.length > 0 ? (
-                        promptHistory.map((item, index) => (
-                          <div
-                            key={index}
-                            className="p-3 border border-slate-200 dark:border-slate-700 rounded-md hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer"
-                            onClick={() => {
-                              navigator.clipboard.writeText(item.prompt)
-                              toast({
-                                title: "Copied to Clipboard",
-                                description: "Historical prompt copied to clipboard",
-                              })
-                            }}
-                          >
-                            <div className="flex justify-between items-center mb-1">
-                              <span className="text-xs text-slate-500">{new Date(item.timestamp).toLocaleString()}</span>
-                              <Button variant="ghost" size="sm">
-                                <Copy size={14} />
-                              </Button>
-                            </div>
-                            <p className="text-sm line-clamp-2">{item.prompt}</p>
-                          </div>
-                        ))
-                      ) : (
-                        <p className="text-center text-slate-500 py-4">No prompt history yet</p>
-                      )}
-                    </div>
-                  </DialogContent>
-                </Dialog>
-
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={copyPrompt}
-                  className="bg-white/90 dark:bg-slate-800/90 shimmer-button"
-                >
-                  <Copy size={16} className="mr-2" />
-                  Copy
-                </Button>
-              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setHistoryDialogOpen(true)}
+                className="bg-white/90 dark:bg-slate-800/90"
+              >
+                <History size={16} className="mr-2" />
+                History
+              </Button>
             </div>
-            <pre className="whitespace-pre-wrap bg-white dark:bg-slate-900 p-4 rounded border border-slate-200 dark:border-slate-700 text-sm">
-              {assemblePrompt() || "Your prompt will appear here as you build it..."}
-            </pre>
+            <div className="bg-white dark:bg-slate-900 p-4 rounded border border-slate-200 dark:border-slate-700 text-sm overflow-y-auto max-h-[60vh]">
+              {renderAssembledPrompt()}
+            </div>
           </div>
         </div>
       </div>
 
+      {/* Existing dialogs */}
       <SavedPromptsDialog
         open={savedPromptsOpen}
         onOpenChange={setSavedPromptsOpen}
@@ -808,7 +756,7 @@ export default function PromptBuilder({
 
       <OnboardingTour steps={tourSteps} isOpen={showTour} onClose={() => setShowTour(false)} />
 
-      {/* Generate All Blocks Dialog */}
+      {/* Generate All Dialog */}
       <Dialog open={showGenerateAllDialog} onOpenChange={setShowGenerateAllDialog}>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
@@ -821,11 +769,22 @@ export default function PromptBuilder({
           <div className="grid gap-4 py-4">
             <Textarea
               id="goal-input"
-              placeholder="e.g., Create a marketing email for a new product launch..."
+              placeholder="e.g., Draft a technical blog post explaining React Server Components..."
               value={generateAllGoal}
               onChange={(e) => setGenerateAllGoal(e.target.value)}
               className="min-h-[100px]" // Ensure textarea has some height
             />
+            <div className="flex flex-wrap gap-2 justify-center">
+                <PromptSuggestion size="sm" onClick={() => setGenerateAllGoal("Create a Python script for data analysis")}>
+                    Data Analysis Script
+                </PromptSuggestion>
+                <PromptSuggestion size="sm" onClick={() => setGenerateAllGoal("Explain a complex topic simply")}>
+                    Explain Complex Topic
+                </PromptSuggestion>
+                <PromptSuggestion size="sm" onClick={() => setGenerateAllGoal("Draft a professional email response")}>
+                    Draft Email Response
+                </PromptSuggestion>
+            </div>
             {/* ScrollArea might be useful if displaying results here, but not needed for input Textarea */}
             {/* <ScrollArea className="h-[200px] w-full rounded-md border p-4">
               Potential results display area

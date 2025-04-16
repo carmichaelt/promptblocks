@@ -90,16 +90,13 @@ export default function SimplePromptInput({
 
       <div className="flex flex-wrap justify-center gap-2">
         <PromptSuggestion onClick={() => setSimplePrompt("Write a Python script to scrape website titles")}>
-          Scrape website titles
+          Create a NextJS app to track my exercise
         </PromptSuggestion>
         <PromptSuggestion onClick={() => setSimplePrompt("Create a marketing email for a new product launch")}>
-          Draft marketing email
+          Draft a marketing email about our new features
         </PromptSuggestion>
         <PromptSuggestion onClick={() => setSimplePrompt("Generate ideas for a fantasy novel")}>
-          Ideas for fantasy novel
-        </PromptSuggestion>
-        <PromptSuggestion onClick={() => setSimplePrompt("Explain quantum physics simply")}>
-          Explain quantum physics
+          Suggest ideas for a fantasy novel
         </PromptSuggestion>
       </div>
 
