@@ -212,7 +212,7 @@ export default function PromptBuilder() {
           </Tooltip>
         </TooltipProvider>
       </div>
-</div>
+
       
       <div className="flex justify-end gap-2 mb-4">
         <Dialog>
@@ -321,7 +321,7 @@ export default function PromptBuilder() {
                   endElement={blockContainerRefs.current[index + 1]!}
                   isEnabled={block.enabled && blocks[index + 1].enabled}
                 />
-              )}*/
+              )}*/}
 
               {/* Arrow indicator between blocks */}
               {index < blocks.length - 1 && (
@@ -356,5 +356,6 @@ export default function PromptBuilder() {
           {assemblePrompt() || "Your prompt will appear here as you build it..."}
         </pre>
       </div>
+    </div>
   )
 }
