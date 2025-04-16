@@ -25,7 +25,7 @@ const resources: Resource[] = [
     title: "Gemini Workspace Guide",
     description: "Master prompting techniques for Google's Gemini AI model",
     url: "https://services.google.com/fh/files/misc/gemini-for-google-workspace-prompting-guide-101.pdf",
-    image: "guide2.png",
+    image: "guide1.png",
     color: "hsl(230, 100%, 80%)",
   },
   // Add more resources here
@@ -63,10 +63,10 @@ export default function ResourceLibrary() {
               className="block transition-transform duration-200 group-hover:scale-105"
             >
               <div className="bg-white/50 dark:bg-slate-800/50 rounded-lg p-6 backdrop-blur-sm">
-                <div className="mb-6">
+                <div className="mb-12 flex justify-center">
                   <Book
                     width={160}
-                    depth={10}
+                    depth={5}
                     color={resource.color}
                     illustration={resource.image ? <img src={resource.image} alt={resource.title} width={160} height={160} /> : undefined}
                   >

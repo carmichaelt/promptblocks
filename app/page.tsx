@@ -32,7 +32,7 @@ export default function QuickPromptPage() {
         </p>
       </div>
 
-      <div className="max-w-3xl mx-auto">
+      <div className="mx-auto w-full">
         <SimplePromptInput
           onGenerationComplete={handleGenerationComplete}
           availableModels={availableModels}

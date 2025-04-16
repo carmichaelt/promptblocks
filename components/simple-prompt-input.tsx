@@ -80,22 +80,19 @@ export default function SimplePromptInput({
   }
 
   return (
-    <div className="w-full max-w-4xl mx-auto space-y-4 p-4 bg-white/80 dark:bg-slate-800/80 rounded-lg shadow-md border border-slate-200 dark:border-slate-700">
+    <div className="w-full max-w-6xl mx-auto space-y-4 p-4 bg-white/80 dark:bg-slate-800/80 rounded-lg shadow-md border border-slate-200 dark:border-slate-700">
       <h2 className="text-lg font-semibold text-center text-slate-700 dark:text-slate-300">
-        Start with a Simple Goal
+        Start with a simple description of what you want to achieve
       </h2>
-      <p className="text-sm text-center text-slate-600 dark:text-slate-400 mb-4">
-        Describe what you want to achieve, or try a suggestion:
-      </p>
 
       <div className="flex flex-wrap justify-center gap-2">
-        <PromptSuggestion onClick={() => setSimplePrompt("Write a Python script to scrape website titles")}>
+        <PromptSuggestion className="bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 dark:from-gray-800 dark:via-gray-700 dark:to-gray-800" onClick={() => setSimplePrompt("Write a Python script to scrape website titles")}>
           Create a NextJS app to track my exercise
         </PromptSuggestion>
-        <PromptSuggestion onClick={() => setSimplePrompt("Create a marketing email for a new product launch")}>
+        <PromptSuggestion className="bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 dark:from-gray-800 dark:via-gray-700 dark:to-gray-800" onClick={() => setSimplePrompt("Create a marketing email about our new features")}>
           Draft a marketing email about our new features
         </PromptSuggestion>
-        <PromptSuggestion onClick={() => setSimplePrompt("Generate ideas for a fantasy novel")}>
+        <PromptSuggestion className="bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 dark:from-gray-800 dark:via-gray-700 dark:to-gray-800" onClick={() => setSimplePrompt("Generate ideas for a fantasy novel")}>
           Suggest ideas for a fantasy novel
         </PromptSuggestion>
       </div>
@@ -108,7 +105,7 @@ export default function SimplePromptInput({
         className="border-input bg-background border shadow-xs"
       >
         <PromptInputTextarea
-          placeholder="e.g., Write a Python script to scrape website titles..."
+          placeholder="Describe what you want to achieve, or try a suggestion above"
         />
         <PromptInputActions className="justify-end">
           <Button
