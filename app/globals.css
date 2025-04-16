@@ -90,6 +90,29 @@
   overflow: hidden;
 }
 
+/* Add subtle animated background patterns */
+.blocks-bg::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: radial-gradient(circle at 20% 30%, rgba(124, 58, 237, 0.15) 0%, transparent 70%),
+    radial-gradient(circle at 80% 70%, rgba(219, 39, 119, 0.1) 0%, transparent 60%);
+  z-index: 0;
+  animation: backgroundShift 20s ease-in-out infinite alternate;
+}
+
+@keyframes backgroundShift {
+  0% {
+    background-position: 0% 0%;
+  }
+  100% {
+    background-position: 100% 100%;
+  }
+}
+
 /* Tab animations */
 @keyframes tabAppear {
   from {
@@ -111,9 +134,7 @@
   background: rgba(255, 255, 255, 0.1);
   backdrop-filter: blur(16px);
   border: 1px solid rgba(255, 255, 255, 0.2);
-  box-shadow: 
-    0 8px 32px rgba(0, 0, 0, 0.2),
-    inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2), inset 0 0 0 1px rgba(255, 255, 255, 0.1);
   z-index: 1;
   position: relative;
   transition: all 0.3s ease;
@@ -122,9 +143,7 @@
 .glass-container:hover {
   background: rgba(255, 255, 255, 0.15);
   border-color: rgba(255, 255, 255, 0.25);
-  box-shadow: 
-    0 12px 48px rgba(0, 0, 0, 0.3),
-    inset 0 0 0 1px rgba(255, 255, 255, 0.15);
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.3), inset 0 0 0 1px rgba(255, 255, 255, 0.15);
 }
 
 .dark .glass-container {
@@ -143,22 +162,14 @@
   overflow: hidden;
   border-radius: 0.75rem;
   padding: 0.25rem;
-  background: linear-gradient(
-    to right,
-    rgba(255, 255, 255, 0.1),
-    rgba(255, 255, 255, 0.05)
-  );
+  background: linear-gradient(to right, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
   backdrop-filter: blur(8px);
   border: 1px solid rgba(255, 255, 255, 0.1);
   transition: all 0.3s ease;
 }
 
 .tab-container:hover {
-  background: linear-gradient(
-    to right,
-    rgba(255, 255, 255, 0.15),
-    rgba(255, 255, 255, 0.1)
-  );
+  background: linear-gradient(to right, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.1));
   border-color: rgba(255, 255, 255, 0.2);
 }
 
@@ -188,14 +199,10 @@
 }
 
 .tab-button::before {
-  content: '';
+  content: "";
   position: absolute;
   inset: 0;
-  background: linear-gradient(
-    to right,
-    rgba(139, 92, 246, 0),
-    rgba(139, 92, 246, 0.1)
-  );
+  background: linear-gradient(to right, rgba(139, 92, 246, 0), rgba(139, 92, 246, 0.1));
   opacity: 0;
   transition: opacity 0.2s ease;
 }
@@ -209,11 +216,7 @@
   position: absolute;
   height: 2px;
   bottom: 0;
-  background: linear-gradient(
-    to right,
-    rgba(139, 92, 246, 0.5),
-    rgba(139, 92, 246, 0.8)
-  );
+  background: linear-gradient(to right, rgba(139, 92, 246, 0.5), rgba(139, 92, 246, 0.8));
   transition: all 0.3s ease;
 }
 
@@ -249,7 +252,8 @@
 
 /* Enhanced block animations */
 @keyframes float {
-  0%, 100% {
+  0%,
+  100% {
     transform: translateY(0);
   }
   50% {
@@ -298,4 +302,123 @@
 
 .select-item[data-state="checked"] {
   @apply bg-purple-50 text-purple-900 dark:bg-purple-900/10 dark:text-purple-400;
+}
+
+/* Add floating particles effect */
+.floating-particles {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.particle {
+  position: absolute;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+/* Add tooltip animations */
+@keyframes tooltipFade {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+[data-state="delayed-open"][role="tooltip"] {
+  animation: tooltipFade 0.2s ease-out forwards;
+}
+
+/* Add focus styles for better accessibility */
+:focus-visible {
+  @apply outline-none ring-2 ring-purple-500 ring-offset-2;
+}
+
+/* Add smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Add responsive typography */
+@media (max-width: 640px) {
+  h1 {
+    @apply text-3xl;
+  }
+  h2 {
+    @apply text-xl;
+  }
+}
+
+/* Add a subtle shimmer effect to buttons */
+.shimmer-button {
+  position: relative;
+  overflow: hidden;
+}
+
+.shimmer-button::after {
+  content: "";
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.1), transparent);
+  transform: rotate(30deg);
+  animation: shimmer 3s infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%) rotate(30deg);
+  }
+  100% {
+    transform: translateX(100%) rotate(30deg);
+  }
+}
+
+/* Add a subtle pulse effect to the assembled prompt container */
+.pulse-container {
+  animation: subtle-pulse 4s ease-in-out infinite;
+}
+
+@keyframes subtle-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 rgba(124, 58, 237, 0.1);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(124, 58, 237, 0.2);
+  }
+}
+
+/* Add a typing animation for placeholders */
+@keyframes typing {
+  from {
+    width: 0;
+  }
+  to {
+    width: 100%;
+  }
+}
+
+.typing-placeholder::before {
+  content: attr(data-placeholder);
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 0;
+  height: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+  animation: typing 2s steps(40, end) forwards;
 }

@@ -2,7 +2,7 @@
 
 import { forwardRef, useState, useRef } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { Sparkles, Info, Mic, MicOff, GripVertical } from "lucide-react"
+import { Sparkles, Info, Mic, MicOff, GripVertical, Lightbulb } from "lucide-react"
 import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
 import { Switch } from "@/components/ui/switch"
@@ -14,8 +14,8 @@ import AIPromptDialog from "./ai-prompt-dialog"
 import BlockInfoDialog from "./block-info-dialog"
 import LoadingSparkles from "./loading-sparkles"
 import ParticleEffect from "./particle-effect"
-import { experimental_useObject as useObject } from '@ai-sdk/react'
-import { blockContentSchema } from '@/app/api/block-content/schema'
+import { experimental_useObject as useObject } from "@ai-sdk/react"
+import { blockContentSchema } from "@/app/api/schema"
 
 interface PromptBlockProps {
   block: PromptBlock
@@ -29,26 +29,54 @@ interface PromptBlockProps {
   onRecordingToggle: () => void
   onDragStart?: () => void
   onDragEnd?: () => void
+  selectedModel: string
 }
 
 const PromptBlockComponent = forwardRef<HTMLTextAreaElement, PromptBlockProps>(
-  ({ block, index, isFocused, isDisabled, onChange, onFocus, onToggle, isRecording, onRecordingToggle, onDragStart, onDragEnd }, ref) => {
+  (
+    {
+      block,
+      index,
+      isFocused,
+      isDisabled,
+      onChange,
+      onFocus,
+      onToggle,
+      isRecording,
+      onRecordingToggle,
+      onDragStart,
+      onDragEnd,
+      selectedModel,
+    },
+    ref,
+  ) => {
     const [isAIDialogOpen, setIsAIDialogOpen] = useState(false)
     const [isInfoDialogOpen, setIsInfoDialogOpen] = useState(false)
     const [particlePosition, setParticlePosition] = useState<{ x: number; y: number } | null>(null)
+    const [showSuggestion, setShowSuggestion] = useState(false)
     const blockRef = useRef<HTMLDivElement>(null)
 
-    const { object, isLoading: isGenerating, submit, error } = useObject({
-      api: '/api/block-content',
+    const {
+      object,
+      isLoading: isGenerating,
+      submit,
+      error,
+    } = useObject({
+      api: "/api/block-content",
       schema: blockContentSchema,
       onFinish: ({ object }) => {
         if (object) {
           onChange(object.content)
+
+          // Show suggestions if available
+          if (object.metadata?.suggestions?.length > 0) {
+            setShowSuggestion(true)
+          }
         }
       },
       onError: (error) => {
         console.error("Error generating content:", error)
-      }
+      },
     })
 
     const blockColors = {
@@ -81,11 +109,14 @@ const PromptBlockComponent = forwardRef<HTMLTextAreaElement, PromptBlockProps>(
           blockType: block.type,
           blockLabel: block.label,
           userPrompt: "Improve this content",
-          existingContent: block.content
+          existingContent: block.content,
+          selectedModel,
         })
         setTimeout(() => setParticlePosition(null), 1000)
       }
     }
+
+    const suggestions = object?.metadata?.suggestions || []
 
     return (
       <motion.div
@@ -93,7 +124,7 @@ const PromptBlockComponent = forwardRef<HTMLTextAreaElement, PromptBlockProps>(
         whileHover={{ scale: 1.01 }}
         whileTap={{ scale: 0.99 }}
         className={cn(
-          "rounded-lg border-l-4 p-4 transition-all relative shadow-md",
+          "rounded-lg border-l-4 p-4 transition-all shadow-md",
           blockColors[block.type as keyof typeof blockColors],
           isFocused && "ring-2 ring-offset-2 ring-slate-300 dark:ring-slate-600",
           !block.enabled && "opacity-50",
@@ -200,6 +231,30 @@ const PromptBlockComponent = forwardRef<HTMLTextAreaElement, PromptBlockProps>(
             !block.enabled && "cursor-not-allowed bg-slate-50 dark:bg-slate-800",
           )}
         />
+
+        {/* Suggestions */}
+        <AnimatePresence>
+          {showSuggestion && suggestions.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 10 }}
+              className="mt-2 p-2 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-md"
+            >
+              <div className="flex items-start gap-2">
+                <Lightbulb size={16} className="text-amber-500 mt-0.5" />
+                <div className="flex-1">
+                  <p className="text-xs font-medium text-amber-800 dark:text-amber-300">Suggestion:</p>
+                  <p className="text-xs text-amber-700 dark:text-amber-400">{suggestions[0]}</p>
+                </div>
+                <Button variant="ghost" size="sm" className="h-6 text-xs" onClick={() => setShowSuggestion(false)}>
+                  Dismiss
+                </Button>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
         {isGenerating && (
           <div className="absolute inset-0 flex items-center justify-center bg-white/80 dark:bg-slate-900/80 rounded-md">
             <LoadingSparkles />
@@ -212,6 +267,7 @@ const PromptBlockComponent = forwardRef<HTMLTextAreaElement, PromptBlockProps>(
           onGenerate={(content) => onChange(content)}
           blockType={block.type}
           blockLabel={block.label}
+          selectedModel={selectedModel}
         />
 
         <BlockInfoDialog

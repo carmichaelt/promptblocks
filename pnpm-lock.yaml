@@ -128,6 +128,9 @@ importers:
       date-fns:
         specifier: 4.1.0
         version: 4.1.0
+      dicons:
+        specifier: ^1.1.7
+        version: 1.1.7
       embla-carousel-react:
         specifier: 8.5.1
         version: 8.5.1(react@19.1.0)
@@ -137,12 +140,6 @@ importers:
       input-otp:
         specifier: 1.4.1
         version: 1.4.1(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
-      leader-line:
-        specifier: ^1.0.8
-        version: 1.0.8
-      leader-line-new:
-        specifier: ^1.1.9
-        version: 1.1.9
       lucide-react:
         specifier: ^0.454.0
         version: 0.454.0(react@19.1.0)
@@ -1444,6 +1441,9 @@ packages:
   detect-node-es@1.1.0:
     resolution: {integrity: sha512-ypdmJU/TbBby2Dxibuv7ZLW3Bs1QEmM7nHjEANfohJLvE0XVujisn1qPJcZxg+qDucsr+bP6fLD1rPS3AhJ7EQ==}
 
+  dicons@1.1.7:
+    resolution: {integrity: sha512-SjtsJhOHpq4CYGjHmBkRXkzOtafE9dybfvnym8KLPoCocDN9LBCGbOKCxGo5UsIKqCtYz7RUqNswaOiCh+wtfg==}
+
   didyoumean@1.2.2:
     resolution: {integrity: sha512-gxtyfqMg7GKyhQmb056K7M3xszy/myH8w+B4RT+QXBQsvAOdc3XymqDDPHx1BgPgsdAA5SIifona89YtRATDzw==}
 
@@ -1638,12 +1638,6 @@ packages:
     resolution: {integrity: sha512-3QItJOXp2AP1uv7waBkao5nCvhEv+QmJAd38Ybq7wNI74Q+BBmnLn4EDKz6yI9xGAIQoUF87qHt+kc1IVxB4zQ==}
     engines: {node: ^18.0.0 || >=20.0.0}
     hasBin: true
-
-  leader-line-new@1.1.9:
-    resolution: {integrity: sha512-x56aRYaqJTA4aAS2fgbSpvWKY3IxRXDSFeGkNBmCQ3LX44B3F1HEjcBTkCiK5I3W0nPWeUTWe7dTt59VtdfFWw==}
-
-  leader-line@1.0.8:
-    resolution: {integrity: sha512-3TOYtjjcYJCdtEs+bCuVSj6GvFiAzywtjifeeVcBYVwejHfI8a/NRxU4s6DjXB+H/ccNA/qtZEjrFVw9W97dCQ==}
 
   lie@3.3.0:
     resolution: {integrity: sha512-UaiMJzeWRlEujzAuw5LokY1L5ecNQYZKfmyZ9L7wDHb/p5etKaxXhohBcrw0EYby+G/NA52vRSN4N39dxHAIwQ==}
@@ -3500,6 +3494,8 @@ snapshots:
 
   detect-node-es@1.1.0: {}
 
+  dicons@1.1.7: {}
+
   didyoumean@1.2.2: {}
 
   diff-match-patch@1.0.5: {}
@@ -3668,10 +3664,6 @@ snapshots:
       '@types/diff-match-patch': 1.0.36
       chalk: 5.4.1
       diff-match-patch: 1.0.5
-
-  leader-line-new@1.1.9: {}
-
-  leader-line@1.0.8: {}
 
   lie@3.3.0:
     dependencies:

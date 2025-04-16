@@ -9,6 +9,7 @@ export interface BlockConfig {
   examples: string[]
   defaultContent?: string
   placeholder: string
+  enabled: boolean
 }
 
 // Template configuration
@@ -39,7 +40,8 @@ export const blockConfigs: Record<string, BlockConfig> = {
       "Patient, supportive teaching assistant specializing in mathematics",
       "Data scientist with expertise in statistical analysis and visualization"
     ],
-    placeholder: "Define the role, expertise level, and key characteristics..."
+    placeholder: "Define the role, expertise level, and key characteristics...",
+    enabled: true,
   },
   context: {
     type: "context",
@@ -61,7 +63,8 @@ export const blockConfigs: Record<string, BlockConfig> = {
       "The legacy system uses Java 8 and Oracle Database 12c...",
       "Our team has already attempted to solve this by..."
     ],
-    placeholder: "Provide relevant background information and context..."
+    placeholder: "Provide relevant background information and context...",
+    enabled: true,
   },
   audience: {
     type: "audience",
@@ -81,7 +84,8 @@ export const blockConfigs: Record<string, BlockConfig> = {
       "The readers are potential investors with financial backgrounds.",
       "This is for internal team members who understand our project jargon."
     ],
-    placeholder: "Define who will be reading or receiving this content..."
+    placeholder: "Define who will be reading or receiving this content...",
+    enabled: true,
   },
   task: {
     type: "task",
@@ -103,7 +107,8 @@ export const blockConfigs: Record<string, BlockConfig> = {
       "Optimize the following database query to improve performance...",
       "Design a RESTful API endpoint that handles..."
     ],
-    placeholder: "Specify what needs to be done and the desired outcome..."
+    placeholder: "Specify what needs to be done and the desired outcome...",
+    enabled: true,
   },
   tone: {
     type: "tone",
@@ -123,7 +128,8 @@ export const blockConfigs: Record<string, BlockConfig> = {
       "The tone should be empathetic and understanding.",
       "Maintain a neutral and informative tone throughout the response."
     ],
-    placeholder: "Specify the desired tone, style, and voice for the response..."
+    placeholder: "Specify the desired tone, style, and voice for the response...",
+    enabled: true,
   },
   format: {
     type: "format",
@@ -145,7 +151,8 @@ export const blockConfigs: Record<string, BlockConfig> = {
       "Provide a numbered list of steps, each with a description and example",
       "Structure the analysis as: Context → Problem → Solution → Implementation"
     ],
-    placeholder: "Define how the response should be structured and formatted..."
+    placeholder: "Define how the response should be structured and formatted...",
+    enabled: true,
   },
   constraints: {
     type: "constraints",
@@ -167,7 +174,8 @@ export const blockConfigs: Record<string, BlockConfig> = {
       "Limit the explanation to the core concepts, do not go into advanced details.",
       "Response must be factually accurate and verifiable."
     ],
-    placeholder: "List any limitations, requirements, or specific guidelines the AI should follow..."
+    placeholder: "List any limitations, requirements, or specific guidelines the AI should follow...",
+    enabled: true,
   },
   examples: {
     type: "examples",
@@ -190,7 +198,8 @@ export const blockConfigs: Record<string, BlockConfig> = {
       "Input: 'Complex topic', Audience: Expert. Output: 'Detailed technical explanation'",
       "Input: 'Same topic', Audience: Beginner. Output: 'Simplified explanation with analogies'"
     ],
-    placeholder: "Add input/output examples to guide the AI's response style and format. Use consistent patterns like 'Input: X, Output: Y'."
+    placeholder: "Add input/output examples to guide the AI's response style and format. Use consistent patterns like 'Input: X, Output: Y'.",
+    enabled: true,
   }
 }
 
@@ -205,21 +214,21 @@ export const promptTemplates: PromptTemplate[] = [
         ...blockConfigs.persona,
         label: "AI Persona (Optional)",
         content: "",
-        enabled: false,
+        enabled: true,
         placeholder: blockConfigs.persona.placeholder || "Define the AI's role...",
       },
       {
         ...blockConfigs.audience,
         label: "Target Audience (Optional)",
         content: "",
-        enabled: false,
+        enabled: true,
         placeholder: blockConfigs.audience.placeholder || "Describe who the response is for...",
       },
       {
         ...blockConfigs.tone,
         label: "Desired Tone (Optional)",
         content: "",
-        enabled: false,
+        enabled: true,
         placeholder: blockConfigs.tone.placeholder || "Specify the desired tone...",
       },
       {
@@ -254,7 +263,7 @@ export const promptTemplates: PromptTemplate[] = [
         ...blockConfigs.examples,
         label: "Examples (Few-Shot, Optional)",
         content: "",
-        enabled: false,
+        enabled: true,
         placeholder: blockConfigs.examples.placeholder || "Add input/output examples...",
       },
     ],
@@ -510,7 +519,7 @@ export const promptTemplates: PromptTemplate[] = [
         ...blockConfigs.examples,
         label: "Similar Examples",
         content: "",
-        enabled: false,
+        enabled: true,
         placeholder: "Provide examples of similar emails or preferred phrasings...",
       }
     ],
