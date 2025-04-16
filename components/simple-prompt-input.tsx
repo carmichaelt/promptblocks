@@ -80,19 +80,48 @@ export default function SimplePromptInput({
   }
 
   return (
-    <div className="w-full max-w-6xl mx-auto space-y-4 p-4 bg-white/80 dark:bg-slate-800/80 rounded-lg shadow-md border border-slate-200 dark:border-slate-700">
-      <h2 className="text-lg font-semibold text-center text-slate-700 dark:text-slate-300">
-        Start with a simple description of what you want to achieve
-      </h2>
+    <div className="w-full mx-auto space-y-6">
+      <div className="space-y-2 text-center">
+        <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-200">
+          Start with a simple description
+        </h2>
+        <p className="text-sm text-slate-600 dark:text-slate-400">
+          Or try one of our suggestions below
+        </p>
+      </div>
 
-      <div className="flex flex-wrap justify-center gap-2">
-        <PromptSuggestion className="bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 dark:from-gray-800 dark:via-gray-700 dark:to-gray-800" onClick={() => setSimplePrompt("Write a Python script to scrape website titles")}>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 max-w-3xl mx-auto px-4">
+        <PromptSuggestion 
+          className="w-full bg-gradient-to-br from-slate-50 to-white dark:from-slate-800/50 dark:to-slate-800 
+                     border border-slate-200/50 dark:border-slate-700/50
+                     shadow-sm hover:shadow-md dark:shadow-none
+                     transition-all duration-200
+                     hover:scale-[1.02] active:scale-[0.98]
+                     dark:hover:bg-slate-800"
+          onClick={() => setSimplePrompt("Create a NextJS app to track my exercise")}
+        >
           Create a NextJS app to track my exercise
         </PromptSuggestion>
-        <PromptSuggestion className="bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 dark:from-gray-800 dark:via-gray-700 dark:to-gray-800" onClick={() => setSimplePrompt("Create a marketing email about our new features")}>
+        <PromptSuggestion 
+          className="w-full bg-gradient-to-br from-slate-50 to-white dark:from-slate-800/50 dark:to-slate-800 
+                     border border-slate-200/50 dark:border-slate-700/50
+                     shadow-sm hover:shadow-md dark:shadow-none
+                     transition-all duration-200
+                     hover:scale-[1.02] active:scale-[0.98]
+                     dark:hover:bg-slate-800"
+          onClick={() => setSimplePrompt("Create a marketing email about our new features")}
+        >
           Draft a marketing email about our new features
         </PromptSuggestion>
-        <PromptSuggestion className="bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 dark:from-gray-800 dark:via-gray-700 dark:to-gray-800" onClick={() => setSimplePrompt("Generate ideas for a fantasy novel")}>
+        <PromptSuggestion 
+          className="w-full sm:col-span-2 lg:col-span-1 bg-gradient-to-br from-slate-50 to-white dark:from-slate-800/50 dark:to-slate-800 
+                     border border-slate-200/50 dark:border-slate-700/50
+                     shadow-sm hover:shadow-md dark:shadow-none
+                     transition-all duration-200
+                     hover:scale-[1.02] active:scale-[0.98]
+                     dark:hover:bg-slate-800"
+          onClick={() => setSimplePrompt("Generate ideas for a fantasy novel")}
+        >
           Suggest ideas for a fantasy novel
         </PromptSuggestion>
       </div>
@@ -102,15 +131,18 @@ export default function SimplePromptInput({
         onValueChange={setSimplePrompt}
         onSubmit={handleGenerate}
         isLoading={isLoading}
-        className="border-input bg-background border shadow-xs"
+        className="max-w-3xl mx-auto bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/50 shadow-sm"
       >
         <PromptInputTextarea
           placeholder="Describe what you want to achieve, or try a suggestion above"
+          className="min-h-[100px] placeholder:text-slate-400 dark:placeholder:text-slate-500"
         />
         <PromptInputActions className="justify-end">
           <Button
             size="sm"
-            className="size-9 cursor-pointer rounded-full shimmer-button bg-gradient-to-r from-purple-600 via-pink-500 to-amber-500"
+            className="size-9 cursor-pointer rounded-full bg-gradient-to-br from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500
+                       text-white shadow-lg hover:shadow-xl transition-all duration-200
+                       disabled:from-slate-400 disabled:to-slate-500 disabled:cursor-not-allowed"
             onClick={handleGenerate}
             disabled={isLoading || !simplePrompt.trim()}
             aria-label="Generate"
