@@ -658,7 +658,7 @@ export default function PromptBuilder({
       )}
 
       {/* Main Content Area */}
-      <div className="flex flex-col lg:flex-row gap-8 px-4">
+      <div className="flex flex-col lg:flex-row gap-8 px-1 md:px-4">
         {/* Left Column: Prompt Blocks */}
         <div className="lg:w-1/2 space-y-6">
           <AnimatePresence>
@@ -722,7 +722,7 @@ export default function PromptBuilder({
 
         {/* Right Column: Assembled Prompt */}
         <div className="lg:w-1/2 lg:sticky lg:top-24 h-fit">
-          <div className="bg-white/90 dark:bg-slate-800/90 rounded-lg p-6 shadow-sm pulse-container assembled-prompt">
+          <div className="bg-white/90 dark:bg-slate-800/90 rounded-lg p-1 md:p-6 shadow-sm pulse-container assembled-prompt">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-bold">Assembled Prompt</h2>
               <Button
@@ -735,7 +735,7 @@ export default function PromptBuilder({
                 History
               </Button>
             </div>
-            <div className="bg-white dark:bg-slate-900 p-4 rounded border border-slate-200 dark:border-slate-700 text-sm overflow-y-auto max-h-[60vh]">
+            <div className="bg-white dark:bg-slate-900 p-1 md:p-4 rounded border border-slate-200 dark:border-slate-700 text-sm overflow-y-auto max-h-[60vh]">
               {isLoadingBlocks ? (
                 <div className="space-y-4">
                   <Skeleton className="h-4 w-3/4" />
@@ -778,31 +778,61 @@ export default function PromptBuilder({
               placeholder="e.g., Draft a technical blog post explaining React Server Components..."
               value={generateAllGoal}
               onChange={(e) => setGenerateAllGoal(e.target.value)}
-              className="min-h-[100px]" // Ensure textarea has some height
+              className="min-h-[100px] resize-none bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-purple-500/20 placeholder:text-slate-400 dark:placeholder:text-slate-500"
             />
-            <div className="flex flex-wrap gap-2 justify-center">
-                <PromptSuggestion size="sm" onClick={() => setGenerateAllGoal("Create a Python script for data analysis")}>
-                    Data Analysis Script
-                </PromptSuggestion>
-                <PromptSuggestion size="sm" onClick={() => setGenerateAllGoal("Explain a complex topic simply")}>
-                    Explain Complex Topic
-                </PromptSuggestion>
-                <PromptSuggestion size="sm" onClick={() => setGenerateAllGoal("Draft a professional email response")}>
-                    Draft Email Response
-                </PromptSuggestion>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+              <PromptSuggestion 
+                size="sm" 
+                className="w-full bg-gradient-to-br from-slate-50 to-white dark:from-slate-800/50 dark:to-slate-800 
+                           border border-slate-200/50 dark:border-slate-700/50
+                           shadow-sm hover:shadow-md dark:shadow-none
+                           transition-all duration-200
+                           hover:scale-[1.02] active:scale-[0.98]
+                           dark:hover:bg-slate-800"
+                onClick={() => setGenerateAllGoal("Create a Python script for data analysis")}
+              >
+                Data Analysis Script
+              </PromptSuggestion>
+              <PromptSuggestion 
+                size="sm" 
+                className="w-full bg-gradient-to-br from-slate-50 to-white dark:from-slate-800/50 dark:to-slate-800 
+                           border border-slate-200/50 dark:border-slate-700/50
+                           shadow-sm hover:shadow-md dark:shadow-none
+                           transition-all duration-200
+                           hover:scale-[1.02] active:scale-[0.98]
+                           dark:hover:bg-slate-800"
+                onClick={() => setGenerateAllGoal("Explain a complex topic simply")}
+              >
+                Explain Complex Topic
+              </PromptSuggestion>
+              <PromptSuggestion 
+                size="sm" 
+                className="w-full sm:col-span-2 lg:col-span-1 bg-gradient-to-br from-slate-50 to-white dark:from-slate-800/50 dark:to-slate-800 
+                           border border-slate-200/50 dark:border-slate-700/50
+                           shadow-sm hover:shadow-md dark:shadow-none
+                           transition-all duration-200
+                           hover:scale-[1.02] active:scale-[0.98]
+                           dark:hover:bg-slate-800"
+                onClick={() => setGenerateAllGoal("Draft a professional email response")}
+              >
+                Draft Email Response
+              </PromptSuggestion>
             </div>
-            {/* ScrollArea might be useful if displaying results here, but not needed for input Textarea */}
-            {/* <ScrollArea className="h-[200px] w-full rounded-md border p-4">
-              Potential results display area
-            </ScrollArea> */}
           </div>
           <DialogFooter>
             <DialogClose asChild>
-              <Button type="button" variant="outline">
+              <Button type="button" variant="outline" className="bg-white hover:bg-slate-100 dark:bg-slate-900 dark:hover:bg-slate-800">
                 Cancel
               </Button>
             </DialogClose>
-            <Button type="button" onClick={() => executeGenerateAll(generateAllGoal)} disabled={isGeneratingAll || !generateAllGoal.trim()}>
+            <Button 
+              type="button" 
+              onClick={() => executeGenerateAll(generateAllGoal)} 
+              disabled={isGeneratingAll || !generateAllGoal.trim()}
+              className="bg-gradient-to-br from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500
+                         text-white shadow-lg hover:shadow-xl transition-all duration-200
+                         disabled:from-slate-400 disabled:to-slate-500 disabled:cursor-not-allowed"
+            >
               {isGeneratingAll ? "Generating..." : "Generate"}
             </Button>
           </DialogFooter>
