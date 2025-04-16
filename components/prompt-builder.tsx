@@ -3,7 +3,6 @@
 import { useState, useEffect, useRef } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { Copy, Settings, ChevronDown, Book, Save, Share2, Sparkles, History, Download, Upload, KeyboardIcon, InfoIcon, Check, Badge } from "lucide-react"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -11,24 +10,18 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
   DialogFooter,
   DialogClose,
 } from "@/components/ui/dialog"
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { toast } from "@/components/ui/use-toast"
 import { cn } from "@/lib/utils"
-import { promptTemplates, blockConfigs } from "@/lib/prompt-config"
+import { promptTemplates } from "@/lib/prompt-config"
 import type { PromptBlock, PromptTemplate } from "@/types/prompt-types"
 import PromptBlockComponent from "./prompt-block"
-import KeyboardShortcutsGuide from "./keyboard-shortcuts-guide"
 import SavedPromptsDialog from "./saved-prompts-dialog"
-import AIModelSelector from "./ai-model-selector"
 import OnboardingTour from "./onboarding-tour"
 import { Textarea } from "@/components/ui/textarea"
-import { ScrollArea } from "@/components/ui/scroll-area"
 import { PromptSuggestion } from "@/components/ui/prompt-suggestion"
-import { IconButtonGroup, IconButton } from "@/components/ui/icon-button-group"
 import { Navbar } from "@/components/navbar"
 
 interface SpeechRecognition extends EventTarget {
@@ -490,21 +483,19 @@ export default function PromptBuilder({
   }
 
   const sharePrompt = () => {
-    // Create a shareable URL or copy to clipboard
-    const promptData = {
-      blocks: blocks,
-      template: activeTemplate,
-      model: selectedModel,
-    }
-
-    const shareableData = btoa(JSON.stringify(promptData))
-    const shareableUrl = `${window.location.origin}?prompt=${shareableData}`
-
-    navigator.clipboard.writeText(shareableUrl)
+    // Assemble the prompt content
+    const promptContent = assemblePrompt()
+    
+    // Create email content with proper formatting
+    const subject = encodeURIComponent("Shared Prompt from PromptBlocks")
+    const body = encodeURIComponent(promptContent)
+    
+    // Open default email client with pre-filled content
+    window.location.href = `mailto:?subject=${subject}&body=${body}`
 
     toast({
-      title: "Share Link Created",
-      description: "A shareable link to this prompt has been copied to your clipboard",
+      title: "Email Client Opened",
+      description: "An email draft has been created with your prompt",
     })
   }
 

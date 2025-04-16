@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Settings } from "lucide-react"
 import { cn } from "@/lib/utils"
+import React from "react"
 
 interface IconButtonProps {
   icon: ReactNode
@@ -35,9 +36,24 @@ export function IconButton({ icon, label, onClick, disabled, variant = "outline"
 }
 
 export function IconButtonGroup({ buttons, className }: IconButtonGroupProps) {
+  const [open, setOpen] = React.useState(false)
+
+  const handleValueChange = (value: string) => {
+    const index = parseInt(value.replace('action-', ''))
+    if (!isNaN(index) && buttons[index]) {
+      buttons[index].onClick()
+    }
+    setOpen(false) // Close the select after action
+  }
+
   return (
     <div className={cn("relative", className)}>
-      <Select>
+      <Select 
+        open={open} 
+        onOpenChange={setOpen}
+        onValueChange={handleValueChange}
+        value=""
+      >
         <SelectTrigger className="h-8 w-[130px] bg-white/90 dark:bg-slate-800/90">
           <Settings size={16} className="mr-2" />
           <span>Actions</span>
@@ -47,10 +63,6 @@ export function IconButtonGroup({ buttons, className }: IconButtonGroupProps) {
             <SelectItem
               key={index}
               value={`action-${index}`}
-              onSelect={(event) => {
-                event.preventDefault()
-                button.onClick()
-              }}
               className="cursor-pointer"
             >
               <div className="flex items-center gap-2">

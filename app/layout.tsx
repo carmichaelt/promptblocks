@@ -17,21 +17,23 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body>
+    <html lang="en" className="antialiased" suppressHydrationWarning>
+      <body className="min-h-screen bg-slate-50 dark:bg-slate-950">
         <AnimatedGridPattern
-          numSquares={30}
+          numSquares={200}
           maxOpacity={0.1}
           duration={3}
           repeatDelay={1}
           className={cn(
-            "[mask-image:radial-gradient(500px_circle_at_center,white,transparent)]",
-            "inset-x-0 inset-y-[-30%] h-[200%] skew-y-12",
+            "[mask-image:linear-gradient(to_bottom,white,transparent_80%)]",
+            "fixed inset-0 w-full h-full -z-10",
           )}
         />
         <AppNav />
-        <main className="min-h-screen pt-8">
-          {children}
+        <main className="min-h-[calc(100vh-4rem)] py-12 relative z-10 container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="mx-auto max-w-7xl rounded-2xl bg-white/98 dark:bg-slate-900/98 shadow-lg shadow-slate-200/50 dark:shadow-slate-950/50 backdrop-blur-sm p-6 sm:p-8 ring-1 ring-slate-200/70 dark:ring-slate-800/70">
+            {children}
+          </div>
         </main>
         <Toaster />
       </body>

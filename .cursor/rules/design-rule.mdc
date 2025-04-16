@@ -1,0 +1,105 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+
+# Your rule content
+
+🧠 Foundational Design Principles for Next.js Component Generation
+1. Feature-First Structure
+Start with functionality, not layout. Build components around core features, not containers or navigation shells.
+
+Avoid prematurely deciding on navbars, sidebars, or footers.
+
+2. Progressive Detailing
+Build in low fidelity first (wireframe-level logic). Only add visuals like colors, shadows, or icons in later passes.
+
+Use grayscale first to emphasize contrast and hierarchy before styling.
+
+3. Iterative Development
+Ship the smallest useful version of a component first.
+
+Avoid designing or coding "nice-to-haves" until after MVP is functional.
+
+4. Consistent Personality
+Each app should have a design personality (playful, professional, minimalist, etc.).
+
+Drive this through consistent:
+
+Typography: choose fonts with 5+ weights.
+
+Colors: select a palette based on the intended vibe.
+
+Radius: use uniform corner rounding throughout.
+
+Language: keep microcopy aligned with the tone.
+
+5. Systematized Design Decisions
+Use predefined scales for:
+
+Spacing: e.g., [4, 8, 12, 16, 24, 32, 48...].
+
+Font sizes: e.g., [12, 14, 16, 20, 24, 32, 48...].
+
+Colors: define base + shades [100–900].
+
+Shadows, radii, borders: define fixed tokens.
+
+Never define pixel-level values ad hoc; use tokens from the system.
+
+6. Visual Hierarchy Is Critical
+Use size, weight, color, and spacing to clarify what matters most in a component.
+
+Avoid using all elements at equal emphasis.
+
+De-emphasize less important content instead of over-styling key content.
+
+7. Smart Text Design
+Use a type scale. Avoid using every pixel size.
+
+Limit link styles — not everything needs a color.
+
+Keep line length optimal (~45–75 characters).
+
+Use baseline alignment when mixing font sizes.
+
+8. Spacing & Layout
+Start with too much white space, then subtract.
+
+Use a scale for spacing rather than arbitrary margins/paddings.
+
+Don’t force content to fill full width — use max-width sensibly.
+
+9. Color Strategy
+Use HSL, not HEX, for maintainability and scalability.
+
+Define full color scales: primary, accent, gray with 8–10 shades.
+
+Adjust saturation/lightness manually, don’t rely on auto-lighten/darken.
+
+10. Clarity Through Grouping
+Avoid ambiguous spacing — group elements clearly using proximity.
+
+Make sure related items are closer together than unrelated ones.
+
+11. Accessibility Without Sacrificing Design
+Don’t rely on color alone for meaning.
+
+Favor text, icons, and spacing to signal states or groupings.
+
+Support screen reader semantics — but keep visual hierarchy separate.
+
+12. Depth and Interaction
+Use shadows to imply elevation and interactivity.
+
+Shadows should reflect a consistent light source.
+
+Flat doesn’t mean depthless — layer elements smartly.
+
+13. Don’t Be a Grid Purist
+Use grids where helpful, but not all elements should be fluid.
+
+Favor max-width for components like cards/forms over percentage-based widths.
+
+Define realistic breakpoints and scale with intent, not proportionally.
