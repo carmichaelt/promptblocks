@@ -14,7 +14,7 @@ import AIPromptDialog from "./ai-prompt-dialog"
 import BlockInfoDialog from "./block-info-dialog"
 import LoadingSparkles from "./loading-sparkles"
 import ParticleEffect from "./particle-effect"
-import { experimental_useObject as useObject } from 'ai/react'
+import { experimental_useObject as useObject } from '@ai-sdk/react'
 import { blockContentSchema } from '@/app/api/block-content/schema'
 
 interface PromptBlockProps {
