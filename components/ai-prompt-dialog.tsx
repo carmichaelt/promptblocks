@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
+import { Progress } from "@/components/ui/progress"
 import { Badge } from "@/components/ui/badge"
 import { experimental_useObject as useObject } from '@ai-sdk/react';
 import { blockContentSchema } from "@/app/api/schema"
@@ -74,6 +75,7 @@ export default function AIPromptDialog({
   const [prompt, setPrompt] = useState("")
   const [selectedRole, setSelectedRole] = useState<RoleTemplate | null>(null)
   const [activeTab, setActiveTab] = useState("guidance")
+  const [generationProgress, setGenerationProgress] = useState(0)
   const blockTemplate = blockConfigs[blockType]
 
   const {
@@ -86,19 +88,25 @@ export default function AIPromptDialog({
     schema: blockContentSchema,
     onFinish: ({ object }) => {
       if (object) {
-        onGenerate(object.content)
-        setPrompt("")
-        setSelectedRole(null)
-        onOpenChange(false)
+        setGenerationProgress(100)
+        setTimeout(() => {
+          onGenerate(object.content)
+          setPrompt("")
+          setSelectedRole(null)
+          setGenerationProgress(0)
+          onOpenChange(false)
+        }, 500)
       }
     },
     onError: (error) => {
       console.error("Error generating content:", error)
+      setGenerationProgress(0)
     },
   })
 
   const handleGenerate = async () => {
     if (!prompt.trim()) return
+    setGenerationProgress(20)
 
     submit({
       blockType,
@@ -107,6 +115,17 @@ export default function AIPromptDialog({
       systemPrompt: selectedRole?.systemPrompt,
       selectedModel,
     })
+
+    // Simulate progress for better UX
+    const interval = setInterval(() => {
+      setGenerationProgress(prev => {
+        if (prev >= 90) {
+          clearInterval(interval)
+          return 90
+        }
+        return prev + 10
+      })
+    }, 500)
   }
 
   const handleRoleSelect = (role: RoleTemplate) => {
@@ -186,14 +205,25 @@ export default function AIPromptDialog({
             onChange={(e) => setPrompt(e.target.value)}
             placeholder={`Describe what ${blockTemplate?.title} you need help with...`}
             className="min-h-32 font-mono text-sm"
+            disabled={isGenerating}
           />
           <p className="text-xs text-muted-foreground">
             The more specific you are, the better the results will be
           </p>
         </div>
 
+        {isGenerating && (
+          <div className="mt-4">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm font-medium">Generating content...</span>
+              <span className="text-sm text-muted-foreground">{generationProgress}%</span>
+            </div>
+            <Progress value={generationProgress} className="h-1" />
+          </div>
+        )}
+
         <DialogFooter>
-          <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+          <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isGenerating}>
             Cancel
           </Button>
           <Button

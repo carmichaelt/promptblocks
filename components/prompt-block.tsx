@@ -7,6 +7,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
 import { Switch } from "@/components/ui/switch"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { LoadingSpinner } from "@/components/ui/loading-spinner"
 import { cn } from "@/lib/utils"
 import type { PromptBlock } from "@/types/prompt-types"
 import { blockConfigs } from "@/lib/prompt-config"
@@ -223,21 +224,34 @@ const PromptBlockComponent = forwardRef<HTMLTextAreaElement, PromptBlockProps>(
           </div>
         </div>
 
-        <Textarea
-          ref={ref}
-          value={block.content}
-          onChange={(e) => onChange(e.target.value)}
-          onFocus={onFocus}
-          disabled={isDisabled || isGenerating || !block.enabled}
-          placeholder={block.placeholder}
-          className={cn(
-            "min-h-24 resize-y border-slate-200 dark:border-slate-700 bg-white/90 dark:bg-slate-900/90",
-            isDisabled && "cursor-not-allowed",
-            isGenerating && "opacity-50",
-            !block.enabled && "cursor-not-allowed bg-slate-50 dark:bg-slate-800",
-            isOptional && !block.enabled && "bg-slate-100 dark:bg-slate-800"
+        <div className="relative">
+          <Textarea
+            ref={ref}
+            value={block.content}
+            onChange={(e) => onChange(e.target.value)}
+            onFocus={onFocus}
+            disabled={isDisabled || isGenerating || !block.enabled}
+            placeholder={block.placeholder}
+            className={cn(
+              "min-h-24 resize-y border-slate-200 dark:border-slate-700 bg-white/90 dark:bg-slate-900/90",
+              isDisabled && "cursor-not-allowed",
+              isGenerating && "opacity-50",
+              !block.enabled && "cursor-not-allowed bg-slate-50 dark:bg-slate-800",
+              isOptional && !block.enabled && "bg-slate-100 dark:bg-slate-800"
+            )}
+          />
+
+          {/* Loading Overlay */}
+          {(isGenerating || isAwaitingGeneration) && (
+            <div className="absolute inset-0 flex items-center justify-center bg-white/70 dark:bg-slate-900/70 rounded-lg backdrop-blur-sm">
+              <LoadingSpinner 
+                variant={isGenerating ? "default" : "secondary"}
+                size="lg"
+                label={isGenerating ? "Generating content..." : "Waiting to generate..."}
+              />
+            </div>
           )}
-        />
+        </div>
 
         {/* Suggestions */}
         <AnimatePresence>
@@ -262,12 +276,7 @@ const PromptBlockComponent = forwardRef<HTMLTextAreaElement, PromptBlockProps>(
           )}
         </AnimatePresence>
 
-        {showLoadingOverlay && (
-          <div className="absolute inset-0 flex items-center justify-center bg-white/70 dark:bg-slate-900/70 rounded-lg pointer-events-none">
-            <LoadingSparkles />
-          </div>
-        )}
-
+        {/* Dialogs */}
         <AIPromptDialog
           open={isAIDialogOpen}
           onOpenChange={setIsAIDialogOpen}

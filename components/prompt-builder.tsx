@@ -23,6 +23,7 @@ import OnboardingTour from "./onboarding-tour"
 import { Textarea } from "@/components/ui/textarea"
 import { PromptSuggestion } from "@/components/ui/prompt-suggestion"
 import { Navbar } from "@/components/navbar"
+import { Skeleton } from "@/components/ui/skeleton"
 
 interface SpeechRecognition extends EventTarget {
   continuous: boolean
@@ -89,40 +90,28 @@ export default function PromptBuilder({
   const recognitionRef = useRef<SpeechRecognition | null>(null)
   const blockRefs = useRef<Array<HTMLTextAreaElement | null>>([])
   const blockContainerRefs = useRef<Array<HTMLDivElement | null>>([])
+  const [isLoadingBlocks, setIsLoadingBlocks] = useState(true)
 
   // Initialize blocks from template or initial props
   useEffect(() => {
-    // --- DEBUG LOG --- 
-    console.log("[PromptBuilder useEffect] Running with:", { initialBlocks, initialTemplateId, currentActiveTemplate: activeTemplate });
-    // --- END DEBUG LOG ---
-
+    setIsLoadingBlocks(true)
+    
     // Prioritize setting blocks from the initialBlocks prop if it exists and has content
     if (initialBlocks && initialBlocks.length > 0) {
-      // --- DEBUG LOG --- 
-      console.log("[PromptBuilder useEffect] Setting blocks from initialBlocks prop.");
-      // --- END DEBUG LOG ---
-      setBlocks(initialBlocks);
-      // Ensure the active template ID matches the one provided, if any
+      setBlocks(initialBlocks)
       if (initialTemplateId && activeTemplate !== initialTemplateId) {
-        // --- DEBUG LOG --- 
-        console.log(`[PromptBuilder useEffect] Setting active template from initialTemplateId: ${initialTemplateId}`);
-        // --- END DEBUG LOG ---
-        setActiveTemplate(initialTemplateId);
+        setActiveTemplate(initialTemplateId)
       }
-    }
-  }, [initialBlocks, initialTemplateId]); // Remove activeTemplate dependency
-
-  // New effect to handle template changes
-  useEffect(() => {
-    // Only update blocks if we're not using initialBlocks
-    if (!initialBlocks || initialBlocks.length === 0) {
-      const template = promptTemplates.find((t) => t.id === activeTemplate);
+    } else {
+      const template = promptTemplates.find((t) => t.id === activeTemplate)
       if (template) {
-        console.log(`[PromptBuilder] Loading blocks from template: ${activeTemplate}`);
-        setBlocks(template.blocks);
+        setBlocks(template.blocks)
       }
     }
-  }, [activeTemplate, initialBlocks]);
+
+    // Simulate loading delay for smoother transitions
+    setTimeout(() => setIsLoadingBlocks(false), 500)
+  }, [initialBlocks, initialTemplateId])
 
   // Load saved prompts from localStorage
   useEffect(() => {
@@ -673,43 +662,61 @@ export default function PromptBuilder({
         {/* Left Column: Prompt Blocks */}
         <div className="lg:w-1/2 space-y-6">
           <AnimatePresence>
-            {blocks.map((block, index) => (
-              <motion.div
-                key={`${block.type}-${index}`}
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: 20 }}
-                transition={{ duration: 0.3, delay: index * 0.1 }}
-                ref={(el) => {
-                  if (el) {
-                    blockContainerRefs.current[index] = el as HTMLDivElement
-                  }
-                }}
-                className="prompt-block"
-              >
-                <div className={cn("transition-opacity", !block.enabled && "opacity-50")}>
-                  <PromptBlockComponent
-                    block={block}
-                    index={index}
-                    isFocused={focusedBlockIndex === index}
-                    isDisabled={!block.enabled}
-                    isAwaitingGeneration={generatingBlockIndices.includes(index)}
-                    onChange={(content) => updateBlockContent(index, content)}
-                    onFocus={() => setFocusedBlockIndex(index)}
-                    onToggle={() => toggleBlockEnabled(index)}
-                    isRecording={recordingBlockIndex === index}
-                    onRecordingToggle={() => toggleRecording(index)}
-                    selectedModel={selectedModel}
-                    ref={(el) => {
-                      if (el) {
-                        blockRefs.current[index] = el
-                      }
-                    }}
-                  />
-                </div>
+            {isLoadingBlocks ? (
+              // Loading skeletons
+              Array.from({ length: 3 }).map((_, index) => (
+                <motion.div
+                  key={`skeleton-${index}`}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: 20 }}
+                  transition={{ duration: 0.3, delay: index * 0.1 }}
+                >
+                  <div className="space-y-2">
+                    <Skeleton className="h-8 w-3/4" />
+                    <Skeleton className="h-24 w-full" />
+                  </div>
+                </motion.div>
+              ))
+            ) : (
+              blocks.map((block, index) => (
+                <motion.div
+                  key={`${block.type}-${index}`}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: 20 }}
+                  transition={{ duration: 0.3, delay: index * 0.1 }}
+                  ref={(el) => {
+                    if (el) {
+                      blockContainerRefs.current[index] = el as HTMLDivElement
+                    }
+                  }}
+                  className="prompt-block"
+                >
+                  <div className={cn("transition-opacity", !block.enabled && "opacity-50")}>
+                    <PromptBlockComponent
+                      block={block}
+                      index={index}
+                      isFocused={focusedBlockIndex === index}
+                      isDisabled={!block.enabled}
+                      isAwaitingGeneration={generatingBlockIndices.includes(index)}
+                      onChange={(content) => updateBlockContent(index, content)}
+                      onFocus={() => setFocusedBlockIndex(index)}
+                      onToggle={() => toggleBlockEnabled(index)}
+                      isRecording={recordingBlockIndex === index}
+                      onRecordingToggle={() => toggleRecording(index)}
+                      selectedModel={selectedModel}
+                      ref={(el) => {
+                        if (el) {
+                          blockRefs.current[index] = el
+                        }
+                      }}
+                    />
+                  </div>
 
-              </motion.div>
-            ))}
+                </motion.div>
+              ))
+            )}
           </AnimatePresence>
         </div>
 
@@ -729,7 +736,15 @@ export default function PromptBuilder({
               </Button>
             </div>
             <div className="bg-white dark:bg-slate-900 p-4 rounded border border-slate-200 dark:border-slate-700 text-sm overflow-y-auto max-h-[60vh]">
-              {renderAssembledPrompt()}
+              {isLoadingBlocks ? (
+                <div className="space-y-4">
+                  <Skeleton className="h-4 w-3/4" />
+                  <Skeleton className="h-4 w-full" />
+                  <Skeleton className="h-4 w-2/3" />
+                </div>
+              ) : (
+                renderAssembledPrompt()
+              )}
             </div>
           </div>
         </div>

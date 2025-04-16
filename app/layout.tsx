@@ -1,14 +1,28 @@
 import type React from "react"
 import type { Metadata } from "next"
+import { Inter } from "next/font/google"
 import "./globals.css"
 import { Toaster } from "@/components/ui/toaster"
 import { AnimatedGridPattern } from "@/components/ui/animated-grid-pattern"
 import { AppNav } from "@/components/app-nav"
 import { cn } from "@/lib/utils"
+import { ThemeProvider } from "@/components/theme-provider"
+
+const inter = Inter({ 
+  subsets: ["latin"],
+  variable: "--font-inter",
+})
 
 export const metadata: Metadata = {
   title: "PromptBlocks - Build Better AI Prompts",
   description: "A visual tool to help you build better AI prompts by assembling specialized blocks",
+  keywords: ["AI", "Prompts", "LLM", "ChatGPT", "Prompt Engineering", "AI Tools"],
+  authors: [{ name: "PromptBlocks Team" }],
+  openGraph: {
+    title: "PromptBlocks - Build Better AI Prompts",
+    description: "A visual tool to help you build better AI prompts by assembling specialized blocks",
+    type: "website",
+  },
 }
 
 export default function RootLayout({
@@ -17,25 +31,36 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" className="antialiased" suppressHydrationWarning>
-      <body className="min-h-screen bg-slate-50 dark:bg-slate-950">
-        <AnimatedGridPattern
-          numSquares={200}
-          maxOpacity={0.1}
-          duration={3}
-          repeatDelay={1}
-          className={cn(
-            "[mask-image:linear-gradient(to_bottom,white,transparent_80%)]",
-            "fixed inset-0 w-full h-full -z-10",
-          )}
-        />
-        <AppNav />
-        <main className="min-h-[calc(100vh-4rem)] py-12 relative z-10 container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="mx-auto max-w-7xl rounded-2xl bg-white/98 dark:bg-slate-900/98 shadow-lg shadow-slate-200/50 dark:shadow-slate-950/50 backdrop-blur-sm p-6 sm:p-8 ring-1 ring-slate-200/70 dark:ring-slate-800/70">
-            {children}
+    <html lang="en" className={cn("antialiased", inter.variable)} suppressHydrationWarning>
+      <body className="min-h-screen bg-gray-50 dark:bg-gray-900 font-sans antialiased">
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <AnimatedGridPattern
+            numSquares={200}
+            maxOpacity={0.1}
+            duration={3}
+            repeatDelay={1}
+            className={cn(
+              "[mask-image:linear-gradient(to_bottom,white,transparent_80%)]",
+              "fixed inset-0 w-full h-full -z-10",
+            )}
+          />
+          <div className="relative flex min-h-screen flex-col">
+            <AppNav />
+            <main className="flex-1">
+              <div className="container relative mx-auto px-4 py-8 sm:py-12 lg:py-16">
+                <div className="mx-auto rounded-xl bg-white dark:bg-gray-800 shadow-lg dark:shadow-dark-lg shadow-gray-200/50 dark:shadow-gray-950/50 backdrop-blur-sm p-6 sm:p-8 lg:p-10 ring-1 ring-gray-200/70 dark:ring-gray-700/30">
+                  {children}
+                </div>
+              </div>
+            </main>
           </div>
-        </main>
-        <Toaster />
+          <Toaster />
+        </ThemeProvider>
       </body>
     </html>
   )
