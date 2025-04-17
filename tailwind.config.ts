@@ -46,6 +46,10 @@ const config = {
       },
     },
     extend: {
+      fontFamily: {
+        sans: ['var(--font-inter)'],
+        heading: ['var(--font-jakarta)'],
+      },
       colors: {
         ...colors,
         border: "hsl(var(--border))",

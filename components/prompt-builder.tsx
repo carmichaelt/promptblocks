@@ -281,18 +281,6 @@ export default function PromptBuilder({
     setIsCopied(true)
     setTimeout(() => setIsCopied(false), 2000)
 
-    // Add to history with blocks and template
-    const newHistoryItem = {
-      timestamp: new Date().toISOString(),
-      prompt,
-      blocks: [...blocks],
-      template: activeTemplate
-    }
-
-    const updatedHistory = [newHistoryItem, ...promptHistory].slice(0, 10) // Keep only last 10
-    setPromptHistory(updatedHistory)
-    localStorage.setItem("promptHistory", JSON.stringify(updatedHistory))
-
     toast({
       title: "Prompt Copied",
       description: "The assembled prompt has been copied to your clipboard.",
@@ -305,16 +293,6 @@ export default function PromptBuilder({
     toast({
       title: "Prompt Loaded",
       description: "Your saved prompt has been loaded successfully",
-    })
-  }
-
-  const handleLoadFromHistory = (historyItem: typeof promptHistory[0]) => {
-    if (!historyItem) return
-    loadFromHistory(historyItem.template, historyItem.blocks)
-    setHistoryDialogOpen(false)
-    toast({
-      title: "Prompt Loaded",
-      description: "Historical prompt has been loaded successfully",
     })
   }
 
@@ -618,7 +596,6 @@ export default function PromptBuilder({
         onExport={exportPrompt}
         onImport={importPrompt}
         onGenerateAll={handleGenerateAllClick}
-        onCopy={copyPrompt}
         isGenerating={isGeneratingAll}
         isCopied={isCopied}
       />
@@ -695,20 +672,35 @@ export default function PromptBuilder({
 
         {/* Right Column: Assembled Prompt */}
         <div className="lg:w-1/2 lg:sticky lg:top-24 h-fit">
-          <div className="bg-white/90 dark:bg-slate-800/90 rounded-lg p-1 md:p-6 shadow-sm pulse-container assembled-prompt">
+          <div className="bg-white/90 dark:bg-slate-800/90 rounded-lg p-2 md:p-6 shadow-lg assembled-prompt border border-slate-200 dark:border-slate-700">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-bold">Assembled Prompt</h2>
-              <Button
-                variant="outline"
+              <div className="flex gap-2">
+
+              <Button 
+                onClick={copyPrompt} 
                 size="sm"
-                onClick={() => setHistoryDialogOpen(true)}
-                className="bg-white/90 dark:bg-slate-800/90"
+                className={cn(
+                  "w-fit shadow-sm transition-colors", 
+                  isCopied ? "bg-green-600 hover:bg-green-700" : "bg-purple-600 hover:bg-purple-700 text-white"
+                )} 
+                disabled={isCopied}
               >
-                <History size={16} className="mr-2" />
-                History
+                {isCopied ? (
+                  <>
+                    <Check size={16} className="mr-2" />
+                    Copied
+                  </>
+                ) : (
+                  <>
+                    <Copy size={16} className="mr-2" />
+                    Copy
+                  </>
+                )}
               </Button>
+              </div>
             </div>
-            <div className="bg-white dark:bg-slate-900 p-1 md:p-4 rounded border border-slate-200 dark:border-slate-700 text-sm overflow-y-auto max-h-[60vh]">
+            <div className="bg-white dark:bg-slate-900 p-1 md:p-4 rounded text-sm overflow-y-auto max-h-[60vh]">
               {isLoading ? (
                 <div className="space-y-4">
                   <Skeleton className="h-4 w-3/4" />

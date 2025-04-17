@@ -22,7 +22,6 @@ interface NavbarProps {
   onExport: () => void
   onImport: () => void
   onGenerateAll: () => void
-  onCopy: () => void
   isGenerating: boolean
   isCopied: boolean
 }
@@ -36,16 +35,15 @@ export function Navbar({
   onExport,
   onImport,
   onGenerateAll,
-  onCopy,
   isGenerating,
   isCopied,
 }: NavbarProps) {
   return (
-    <div className="sticky top-0 z-50 w-full ">
+    <div className="relative md:sticky top-0 z-50 w-full">
       <div className="container mx-auto px-0 md:px-4">
-        <div className="flex flex-col md:flex-row md:h-16 py-3 md:py-0 gap-3 md:gap-4">
-          {/* Template Selection - Full width on mobile */}
-          <div className="flex items-center w-full md:flex-1 md:min-w-[200px] md:max-w-xl">
+        <div className="flex flex-col md:flex-row md:h-16 py-3 md:py-0 gap-3 md:gap-4 md:justify-between bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm">
+          {/* Template Selection - Full width on mobile, normal width on desktop */}
+          <div className="flex items-center w-full md:w-[300px]">
             <Select value={activeTemplate} onValueChange={onTemplateChange}>
               <SelectTrigger className="w-full bg-white dark:bg-slate-600 shadow-sm">
                 <SelectValue placeholder="Select a template" />
@@ -61,7 +59,7 @@ export function Navbar({
           </div>
 
           {/* Actions - Row for desktop, Dropdown for mobile */}
-          <div className="flex items-center justify-between md:justify-end gap-3">
+          <div className="flex items-center justify-end gap-3">
             {/* Desktop Actions */}
             <div className="hidden md:flex items-center gap-3">
               <Button
@@ -73,28 +71,6 @@ export function Navbar({
               >
                 <Sparkles size={16} className="mr-2" />
                 Generate
-              </Button>
-
-              <Button 
-                onClick={onCopy} 
-                size="sm" 
-                className={cn(
-                  "shadow-sm transition-colors min-w-[100px]", 
-                  isCopied ? "bg-green-600 hover:bg-green-700" : "bg-purple-600 hover:bg-purple-700 text-white"
-                )} 
-                disabled={isCopied}
-              >
-                {isCopied ? (
-                  <>
-                    <Check size={16} className="mr-2" />
-                    Copied
-                  </>
-                ) : (
-                  <>
-                    <Copy size={16} className="mr-2" />
-                    Copy
-                  </>
-                )}
               </Button>
 
               <IconButtonGroup
@@ -121,7 +97,7 @@ export function Navbar({
                   },
                   {
                     icon: <InfoIcon size={16} />,
-                    label: "Keyboard Shortcuts",
+                    label: "Shortcuts",
                     onClick: () => document.querySelector<HTMLButtonElement>('[data-dialog-trigger="shortcuts"]')?.click(),
                   },
                 ]}
@@ -139,28 +115,6 @@ export function Navbar({
               >
                 <Sparkles size={16} className="mr-2" />
                 Generate
-              </Button>
-
-              <Button 
-                onClick={onCopy} 
-                size="sm"
-                className={cn(
-                  "flex-1 shadow-sm transition-colors", 
-                  isCopied ? "bg-green-600 hover:bg-green-700" : "bg-purple-600 hover:bg-purple-700 text-white"
-                )} 
-                disabled={isCopied}
-              >
-                {isCopied ? (
-                  <>
-                    <Check size={16} className="mr-2" />
-                    Copied
-                  </>
-                ) : (
-                  <>
-                    <Copy size={16} className="mr-2" />
-                    Copy
-                  </>
-                )}
               </Button>
 
               <DropdownMenu>
@@ -188,7 +142,7 @@ export function Navbar({
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => document.querySelector<HTMLButtonElement>('[data-dialog-trigger="shortcuts"]')?.click()}>
                     <InfoIcon size={16} className="mr-2" />
-                    Keyboard Shortcuts
+                    Shortcuts
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>

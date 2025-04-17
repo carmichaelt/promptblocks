@@ -127,15 +127,6 @@ export default function SimplePromptInput({
 
   return (
     <div className="w-full mx-auto space-y-6">
-      <div className="space-y-2 text-center">
-        <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-200">
-          Start with a simple description
-        </h2>
-        <p className="text-sm text-slate-600 dark:text-slate-400">
-          Or try one of our suggestions below
-        </p>
-      </div>
-
       <div className="relative py-6 max-w-3xl mx-auto px-4">
         <AnimatePresence mode="wait">
           <motion.div

@@ -24,17 +24,17 @@ export default function QuickPromptPage() {
   return (
     <div className="container mx-auto px-1 md:px-4 mb-12">
       {/* Hero Section */}
-      <div className="mb-12 text-center">
+      <div className="mb-8 text-center">
         <h1 className="text-5xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-purple-600 via-pink-500 to-amber-500">
           Quick Prompt
         </h1>
         <p className="text-lg font-medium text-slate-600 dark:text-slate-300">
-          Ask anything, let us craft the perfect prompt for you
+          Let us craft the perfect prompt for you
         </p>
       </div>
 
       {/* Quick Prompt Input */}
-      <div className="mx-auto w-full mb-24">
+      <div className="mx-auto w-full mb-16">
         <SimplePromptInput
           onGenerationComplete={handleGenerationComplete}
           availableModels={availableModels}
@@ -50,8 +50,8 @@ export default function QuickPromptPage() {
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
           {/* Step 1 */}
-          <div className="p-6 rounded-2xl bg-gradient-to-br from-slate-50 to-white dark:from-slate-700/50 dark:to-slate-700 
-                        border border-slate-200/50 dark:border-slate-700/50 shadow-sm hover:shadow-md transition-all duration-200">
+          <div className="p-6 rounded-2xl bg-gradient-to-br from-slate-100 to-slate-50 dark:from-slate-700/50 dark:to-slate-700 
+                        border border-slate-200/50 dark:border-slate-700/50 shadow-lg hover:shadow-md transition-all duration-200">
             <div className="flex items-center mb-4">
               <span className="w-8 h-8 rounded-full bg-gradient-to-r from-purple-600 to-pink-600 text-white flex items-center justify-center font-bold">
                 1
@@ -66,8 +66,8 @@ export default function QuickPromptPage() {
           </div>
 
           {/* Step 2 */}
-          <div className="p-6 rounded-2xl bg-gradient-to-br from-slate-50 to-white dark:from-slate-700/50 dark:to-slate-700 
-                        border border-slate-200/50 dark:border-slate-700/50 shadow-sm hover:shadow-md transition-all duration-200">
+          <div className="p-6 rounded-2xl bg-gradient-to-br from-slate-100 to-slate-50 dark:from-slate-700/50 dark:to-slate-700 
+                        border border-slate-200/50 dark:border-slate-700/50 shadow-lg hover:shadow-md transition-all duration-200">
             <div className="flex items-center mb-4">
               <span className="w-8 h-8 rounded-full bg-gradient-to-r from-purple-600 to-pink-600 text-white flex items-center justify-center font-bold">
                 2
@@ -82,8 +82,8 @@ export default function QuickPromptPage() {
           </div>
 
           {/* Step 3 */}
-          <div className="p-6 rounded-2xl bg-gradient-to-br from-slate-50 to-white dark:from-slate-700/50 dark:to-slate-700 
-                        border border-slate-200/50 dark:border-slate-700/50 shadow-sm hover:shadow-md transition-all duration-200">
+          <div className="p-6 rounded-2xl bg-gradient-to-br from-slate-100 to-slate-50 dark:from-slate-700/50 dark:to-slate-700 
+                        border border-slate-200/50 dark:border-slate-700/50 shadow-lg hover:shadow-md transition-all duration-200">
             <div className="flex items-center mb-4">
               <span className="w-8 h-8 rounded-full bg-gradient-to-r from-purple-600 to-pink-600 text-white flex items-center justify-center font-bold">
                 3
