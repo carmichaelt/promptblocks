@@ -1,4 +1,15 @@
-import type { PromptBlock, RoleTemplate } from "@/types/prompt-types"
+import type { PromptBlock, RoleTemplate, PromptTemplate as PromptTemplateType } from "@/types/prompt-types"
+import {
+  Wand2, // General Purpose
+  BrainCircuit, // Complex Reasoning
+  PenTool, // Creative Writing
+  BookText, // Technical Documentation
+  Code, // Code Generation
+  Database, // Data Analysis
+  Mail, // Email Drafting
+  Component, // Structured Reasoning
+  FileText, // Text Summarization
+} from "lucide-react"
 
 // Block type definitions with their specific configurations
 export interface BlockConfig {
@@ -10,14 +21,6 @@ export interface BlockConfig {
   defaultContent?: string
   placeholder: string
   enabled: boolean
-}
-
-// Template configuration
-export interface PromptTemplate {
-  id: string
-  name: string
-  description: string
-  blocks: PromptBlock[]
 }
 
 // Block configurations that define the behavior and content for each block type
@@ -204,10 +207,11 @@ export const blockConfigs: Record<string, BlockConfig> = {
 }
 
 // Template configurations that define different prompt structures
-export const promptTemplates: PromptTemplate[] = [
+export const promptTemplates: PromptTemplateType[] = [
   {
     id: "general",
     name: "General Purpose",
+    icon: Wand2,
     description: "A versatile template for most AI prompting needs",
     blocks: [
       {
@@ -269,9 +273,10 @@ export const promptTemplates: PromptTemplate[] = [
     ],
   },
   {
-    id: "reasoning",
+    id: "complex-reasoning",
     name: "Complex Reasoning",
-    description: "Optimized for problem-solving and analytical tasks",
+    icon: BrainCircuit,
+    description: "Guides the AI through multi-step reasoning processes.",
     blocks: [
       {
         ...blockConfigs.context,
@@ -300,9 +305,10 @@ export const promptTemplates: PromptTemplate[] = [
     ],
   },
   {
-    id: "creative",
+    id: "creative-writing",
     name: "Creative Writing",
-    description: "For storytelling, content creation, and creative tasks",
+    icon: PenTool,
+    description: "Designed for generating creative text formats like stories, poems, or scripts.",
     blocks: [
       {
         ...blockConfigs.context,
@@ -337,9 +343,10 @@ export const promptTemplates: PromptTemplate[] = [
     ],
   },
   {
-    id: "technical",
+    id: "technical-documentation",
     name: "Technical Documentation",
-    description: "For creating technical guides, documentation, and explanations",
+    icon: BookText,
+    description: "Focuses on creating clear and accurate technical documents.",
     blocks: [
       {
         ...blockConfigs.context,
@@ -376,7 +383,8 @@ export const promptTemplates: PromptTemplate[] = [
   {
     id: "code-generation",
     name: "Code Generation",
-    description: "Specialized template for generating code with specific requirements and context",
+    icon: Code,
+    description: "Optimized for generating functional code snippets.",
     blocks: [
       {
         ...blockConfigs.persona,
@@ -424,7 +432,8 @@ export const promptTemplates: PromptTemplate[] = [
   {
     id: "data-analysis",
     name: "Data Analysis",
-    description: "Template for data analysis tasks, insights generation, and statistical interpretation",
+    icon: Database,
+    description: "Structured for data analysis tasks, insights, and reporting.",
     blocks: [
       {
         ...blockConfigs.persona,
@@ -472,7 +481,8 @@ export const promptTemplates: PromptTemplate[] = [
   {
     id: "email-drafting",
     name: "Email Drafting",
-    description: "Template for crafting professional and effective emails",
+    icon: Mail,
+    description: "Helps compose professional and effective emails.",
     blocks: [
       {
         ...blockConfigs.context,
@@ -527,7 +537,8 @@ export const promptTemplates: PromptTemplate[] = [
   {
     id: "structured-reasoning",
     name: "Structured Reasoning",
-    description: "Template for complex problem-solving using chain-of-thought and step-by-step reasoning",
+    icon: Component,
+    description: "Breaks down problems into logical steps for structured analysis.",
     blocks: [
       {
         ...blockConfigs.context,
@@ -566,9 +577,10 @@ export const promptTemplates: PromptTemplate[] = [
     ],
   },
   {
-    id: "summarization",
+    id: "text-summarization",
     name: "Text Summarization",
-    description: "Template for generating concise, accurate summaries of longer texts",
+    icon: FileText,
+    description: "Extracts key information to generate concise summaries.",
     blocks: [
       {
         ...blockConfigs.context,

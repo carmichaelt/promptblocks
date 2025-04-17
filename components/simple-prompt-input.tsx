@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react"
 import { Button } from "@/components/ui/button"
-import { Sparkles, ArrowUpIcon } from "lucide-react"
+import { Sparkles, ArrowUpIcon, Lightbulb } from "lucide-react"
 import { toast } from "@/components/ui/use-toast"
 import type { PromptBlock, PromptTemplate } from "@/types/prompt-types"
 import {
@@ -46,6 +46,27 @@ const suggestions = [
   },
 ]
 
+const promptingTips = [
+  "Be specific: Clearly define the task or topic.",
+  "Provide context: Give background information if needed.",
+  "Set constraints: Specify desired length, format, or tone.",
+  "Use keywords: Include relevant terms for better results.",
+  "Iterate: Refine your prompt based on initial outputs.",
+  "Experiment: Try different phrasing or approaches.",
+  "Define the role: Ask the AI to act as an expert (e.g., 'Act as a senior copywriter').",
+  "Break down complex tasks: Use multiple prompts for intricate goals.",
+  "Use the right model: Choose the appropriate model for your task.",
+  "Check the output: Review the generated content for accuracy and relevance.",
+  "Optimize for results: Tailor your prompt to get the best possible output.",
+  "Use examples: Provide specific examples or references to improve clarity.",
+  "Keep it concise: Avoid unnecessary details or冗余的细节。",
+  "Use clear instructions: Provide specific and clear instructions for the AI.",
+  "Test and refine: Test the prompt and refine it based on feedback.",
+  "Use the right model: Choose the appropriate model for your task.",
+  "Check the output: Review the generated content for accuracy and relevance.",
+  
+];
+
 export default function SimplePromptInput({
   onGenerationComplete,
   availableModels,
@@ -54,6 +75,7 @@ export default function SimplePromptInput({
   const [simplePrompt, setSimplePrompt] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const [currentSuggestionIndex, setCurrentSuggestionIndex] = useState(0)
+  const [currentTipIndex, setCurrentTipIndex] = useState(0);
   const textareaRef = useRef<HTMLTextAreaElement>(null)
 
   // Auto-focus the textarea on component mount
@@ -71,6 +93,22 @@ export default function SimplePromptInput({
 
     return () => clearInterval(interval)
   }, [])
+
+  // Auto-rotate tips during loading
+  useEffect(() => {
+    let tipInterval: NodeJS.Timeout | null = null;
+    if (isLoading) {
+      tipInterval = setInterval(() => {
+        setCurrentTipIndex((current) => (current + 1) % promptingTips.length);
+      }, 3000); // Change tip every 3 seconds
+    } else {
+      setCurrentTipIndex(0); // Reset to first tip when not loading
+    }
+
+    return () => {
+      if (tipInterval) clearInterval(tipInterval);
+    };
+  }, [isLoading]);
 
   const handleGenerate = async () => {
     if (!simplePrompt.trim()) {
@@ -184,6 +222,39 @@ export default function SimplePromptInput({
           </Button>
         </PromptInputActions>
       </PromptInput>
+
+      {/* Loading Tips Section */}
+      <AnimatePresence>
+        {isLoading && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.3 }}
+            className="mt-4 max-w-3xl mx-auto overflow-hidden"
+          >
+            <div className="p-4 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+              <div className="flex items-center text-sm font-medium text-slate-600 dark:text-slate-400 mb-2">
+                <Sparkles size={16} className="mr-2 animate-spin text-purple-500" />
+                Generating prompt... Here's a tip:
+              </div>
+              <AnimatePresence mode="wait">
+                <motion.p
+                  key={currentTipIndex}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ duration: 0.4 }}
+                  className="text-sm text-slate-700 dark:text-slate-300"
+                >
+                   <Lightbulb size={14} className="inline-block mr-1.5 text-amber-500" />
+                  {promptingTips[currentTipIndex]}
+                </motion.p>
+              </AnimatePresence>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   )
 } 

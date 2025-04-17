@@ -49,11 +49,19 @@ export function Navbar({
                 <SelectValue placeholder="Select a template" />
               </SelectTrigger>
               <SelectContent>
-                {templates.map((template) => (
-                  <SelectItem key={template.id} value={template.id} className="cursor-pointer">
-                    {template.name}
-                  </SelectItem>
-                ))}
+                {templates.map((template) => {
+                  // Get the icon component from the template data
+                  const Icon = template.icon;
+                  return (
+                    <SelectItem key={template.id} value={template.id} className="cursor-pointer">
+                      <div className="flex items-center">
+                        {/* Render the icon */}
+                        {Icon && <Icon className="mr-2 h-4 w-4 text-slate-500 dark:text-slate-400" />} 
+                        <span>{template.name}</span>
+                      </div>
+                    </SelectItem>
+                  )
+                })}
               </SelectContent>
             </Select>
           </div>

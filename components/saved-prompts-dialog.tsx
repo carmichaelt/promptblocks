@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Save, Trash2, FolderOpen } from "lucide-react"
 import { EmptyState } from "@/components/ui/empty-state"
-import type { PromptTemplate } from "@/lib/prompt-config"
+import type { PromptTemplate } from "@/types/prompt-types"
 
 interface SavedPromptsDialogProps {
   open: boolean

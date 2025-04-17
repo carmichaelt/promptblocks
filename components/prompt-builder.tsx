@@ -15,36 +15,17 @@ import {
 } from "@/components/ui/dialog"
 import { toast } from "@/components/ui/use-toast"
 import { cn } from "@/lib/utils"
-import { promptTemplates } from "@/lib/prompt-config"
+import { promptTemplates, blockConfigs } from "@/lib/prompt-config"
 import type { PromptBlock, PromptTemplate } from "@/types/prompt-types"
-import PromptBlockComponent from "./prompt-block"
 import SavedPromptsDialog from "./saved-prompts-dialog"
-import { Textarea } from "@/components/ui/textarea"
 import { PromptSuggestion } from "@/components/ui/prompt-suggestion"
 import { Navbar } from "@/components/navbar"
 import { Skeleton } from "@/components/ui/skeleton"
 import { usePromptStore } from "@/lib/stores/prompt-store"
-
-interface SpeechRecognition extends EventTarget {
-  continuous: boolean
-  interimResults: boolean
-  onresult: (event: any) => void
-  onerror: (event: any) => void
-  start: () => void
-  stop: () => void
-}
-
-interface SpeechRecognitionConstructor {
-  new (): SpeechRecognition
-  prototype: SpeechRecognition
-}
-
-declare global {
-  interface Window {
-    SpeechRecognition: SpeechRecognitionConstructor
-    webkitSpeechRecognition: SpeechRecognitionConstructor
-  }
-}
+import { Switch } from "@/components/ui/switch"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import TextareaAutosize from 'react-textarea-autosize'
+import BlockInfoDialog from "./block-info-dialog"
 
 // Define props for the component
 interface PromptBuilderProps {
@@ -73,10 +54,10 @@ export default function PromptBuilder({
     setActiveTemplate,
   } = usePromptStore()
 
-  const [recordingBlockIndex, setRecordingBlockIndex] = useState<number | null>(null)
   const [focusedBlockIndex, setFocusedBlockIndex] = useState<number | null>(null)
   const [savedPromptsOpen, setSavedPromptsOpen] = useState(false)
   const [historyDialogOpen, setHistoryDialogOpen] = useState(false)
+  const [blockInfoDialogOpenIndex, setBlockInfoDialogOpenIndex] = useState<number | null>(null)
   const [savedPrompts, setSavedPrompts] = useState<{ name: string; template: PromptTemplate }[]>([])
   const [isGeneratingAll, setIsGeneratingAll] = useState(false)
   const [generatingBlockIndices, setGeneratingBlockIndices] = useState<number[]>([])
@@ -91,7 +72,7 @@ export default function PromptBuilder({
   const [showGenerateAllDialog, setShowGenerateAllDialog] = useState(false)
   const [generateAllGoal, setGenerateAllGoal] = useState("")
   const [isCopied, setIsCopied] = useState(false)
-  const recognitionRef = useRef<SpeechRecognition | null>(null)
+  const [generatingSingleBlockIndex, setGeneratingSingleBlockIndex] = useState<number | null>(null)
   const blockRefs = useRef<Array<HTMLTextAreaElement | null>>([])
   const blockContainerRefs = useRef<Array<HTMLDivElement | null>>([])
 
@@ -189,66 +170,6 @@ export default function PromptBuilder({
     return () => window.removeEventListener("keydown", handleKeyDown)
   }, [blocks, focusedBlockIndex])
 
-  // Initialize speech recognition
-  useEffect(() => {
-    if (typeof window !== "undefined" && ("SpeechRecognition" in window || "webkitSpeechRecognition" in window)) {
-      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition
-      recognitionRef.current = new SpeechRecognition()
-      recognitionRef.current.continuous = true
-      recognitionRef.current.interimResults = true
-
-      recognitionRef.current.onresult = (event: any) => {
-        if (recordingBlockIndex !== null) {
-          const transcript = Array.from(event.results)
-            .map((result: any) => result[0])
-            .map((result: any) => result.transcript)
-            .join("")
-
-          updateBlock(recordingBlockIndex, transcript)
-        }
-      }
-
-      recognitionRef.current.onerror = (event: any) => {
-        console.error("Speech recognition error", event.error)
-        setRecordingBlockIndex(null)
-      }
-    }
-
-    return () => {
-      if (recognitionRef.current) {
-        recognitionRef.current.stop()
-      }
-    }
-  }, [])
-
-  const toggleRecording = (index: number) => {
-    if (!recognitionRef.current) {
-      toast({
-        title: "Speech Recognition Not Available",
-        description: "Your browser doesn't support speech recognition.",
-        variant: "destructive",
-      })
-      return
-    }
-
-    if (recordingBlockIndex === index) {
-      // Stop recording for this block
-      recognitionRef.current.stop()
-      setRecordingBlockIndex(null)
-    } else {
-      // Stop any existing recording
-      if (recordingBlockIndex !== null) {
-        recognitionRef.current.stop()
-      }
-
-      // Start recording for this block
-      setRecordingBlockIndex(index)
-      setFocusedBlockIndex(index)
-      blockRefs.current[index]?.focus()
-      recognitionRef.current.start()
-    }
-  }
-
   const handleUpdateBlock = (index: number, content: string) => {
     updateBlock(index, content)
   }
@@ -297,13 +218,22 @@ export default function PromptBuilder({
   }
 
   const saveCurrentPrompt = (name: string) => {
+    // Find the full template config to get the icon
+    const currentTemplateConfig = promptTemplates.find(t => t.id === activeTemplate);
+    if (!currentTemplateConfig) {
+      console.error(`[PromptBuilder] Could not find template config for id: ${activeTemplate} during save.`);
+      toast({ title: "Save Error", description: "Could not find current template configuration.", variant: "destructive" });
+      return;
+    }
+    
     const newSavedPrompt = {
       name,
       template: {
         id: activeTemplate,
-        name,
-        description: "Custom saved prompt",
-        blocks: [...blocks],
+        name, // Use the user-provided name for the saved template
+        description: "Custom saved prompt", // Or generate a description?
+        blocks: [...blocks], // Copy current blocks state
+        icon: currentTemplateConfig.icon, // Include the icon from the config
       },
     }
 
@@ -379,23 +309,49 @@ export default function PromptBuilder({
       }
 
       try {
-        const finalParsed = JSON.parse(resultJson)
-        if (finalParsed && typeof finalParsed.generatedBlocks === "object") {
-          const generatedBlocksMap = finalParsed.generatedBlocks as Record<string, string>
+        // ISSUE 1 REVISITED: Parse the outer object first, then access .generatedBlocks
+        // based on AllBlocksContentSchema: { generatedBlocks: Record<string, string> }
+        const fullParsedResponse = JSON.parse(resultJson) as { generatedBlocks: Record<string, string> };
+        
+        // Ensure the expected structure is present
+        if (!fullParsedResponse || typeof fullParsedResponse.generatedBlocks !== 'object') {
+          console.error("[PromptBuilder] Invalid structure from /api/all-blocks. Expected { generatedBlocks: {...} }, got:", fullParsedResponse);
+          throw new Error("Invalid response structure from AI for all blocks.");
+        }
 
-          updateBlock(generatingBlockIndices[0], generatedBlocksMap[blocks[generatingBlockIndices[0]].type])
+        const generatedBlocksMap = fullParsedResponse.generatedBlocks; // Access the nested map
 
-          const updatedCount = Object.keys(generatedBlocksMap).filter((type) =>
-            blocks.some((b, i) => indicesToGenerate.includes(i) && b.type === type),
-          ).length
+        // ISSUE 2: Iterate through the generated map and update all relevant blocks
+        let updatedCount = 0;
+        Object.entries(generatedBlocksMap).forEach(([blockType, content]) => {
+          // Find the first matching block index among those targeted for generation
+          const blockIndexToUpdate = blocks.findIndex((block, index) => 
+            indicesToGenerate.includes(index) && block.type === blockType
+          );
 
+          if (blockIndexToUpdate !== -1) {
+            updateBlock(blockIndexToUpdate, content);
+            updatedCount++;
+          } else {
+            console.warn(`[PromptBuilder] Received generated content for block type "${blockType}" but no corresponding empty/enabled block was targeted.`);
+          }
+        });
+
+        if (updatedCount > 0) {
           toast({
             title: "Generation Finished",
             description: `${updatedCount} blocks generated successfully.`,
           })
         } else {
-          throw new Error("Invalid content structure in parsed response")
+           // Handle cases where parsing worked but no blocks were actually updated
+           // (e.g., AI returned types not in the indicesToGenerate list)
+           toast({
+             title: "Generation Complete",
+             description: "AI response received, but no targeted blocks were updated.",
+             variant: "default" // Use default variant, not necessarily an error
+           })
         }
+
       } catch (parseError) {
         console.error("Failed to parse stream result:", parseError, "Raw content:", resultJson)
         throw new Error("Failed to parse AI response.")
@@ -516,35 +472,249 @@ export default function PromptBuilder({
     setTimeout(() => blockRefs.current[index]?.focus(), 300); // Delay focus slightly after scroll
   };
 
-  // Helper function to render the assembled prompt with interactive labels
-  const renderAssembledPrompt = () => {
-    const assembledParts = blocks
-      .filter((block) => block.enabled)
-      .map((block, index) => {
-        const globalIndex = blocks.findIndex(b => b === block); // Find original index for refs
-        return (
-          <div key={globalIndex} className="mb-4 last:mb-0">
-            <button
-              className="text-left font-semibold text-purple-600 dark:text-purple-400 hover:underline focus:outline-none focus:ring-1 focus:ring-purple-500 rounded px-1 py-0.5 mb-1"
-              onClick={() => handleScrollToBlock(globalIndex)}
-              aria-label={`Go to ${block.label} block`}
-            >
-                {block.label}
+  // Placeholder for single block generation logic
+  const handleGenerateSingleBlock = async (index: number) => {
+    if (generatingSingleBlockIndex !== null || isGeneratingAll) return // Prevent multiple generations
 
-            </button>
-            <div>
-            <span className="whitespace-pre-wrap"> {block.content || <span className='italic text-slate-400 dark:text-slate-600'>empty</span>}</span>
-            </div>
-          </div>
-        )
+    const block = blocks[index]
+    if (!block || !block.enabled) return
+
+    console.log(`Triggering AI generation for block ${index}: ${block.label}`)
+    setGeneratingSingleBlockIndex(index)
+    toast({ title: "Generating...", description: `AI is generating content for "${block.label}".` })
+
+    // Define a user prompt for single block generation. 
+    // TODO: Consider making this more sophisticated, maybe using context from other blocks or a specific input.
+    const singleBlockUserPrompt = `Generate content for the "${block.label}" block, considering its purpose: ${block.description || "Not specified"}.`;
+
+    try {
+      const response = await fetch('/api/block-content', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          blockType: block.type,
+          blockLabel: block.label,
+          userPrompt: singleBlockUserPrompt, 
+          existingContent: block.content, // Send existing content for potential enhancement
+          selectedModel: selectedModel, // Use the currently selected model
+          // systemPrompt: undefined, // Let the API use its default or construct one
+        }),
       });
 
-    if (assembledParts.length === 0) {
-      return <span className="italic text-slate-500 dark:text-slate-500">Your prompt will appear here as you build it...</span>;
+      if (!response.ok || !response.body) {
+        const errorBody = await response.json().catch(() => ({}));
+        throw new Error(`API error: ${response.statusText || response.status} - ${errorBody?.details || 'No details'}`);
+      }
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let resultJson = '';
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        resultJson += decoder.decode(value, { stream: true });
+      }
+      
+      try {
+        // The /api/block-content endpoint streams an object matching blockContentSchema: { content: string }
+        console.log("[PromptBuilder] Raw response from /api/block-content:", resultJson);
+
+        let parsedResult: any;
+        try {
+          parsedResult = JSON.parse(resultJson);
+          console.log("[PromptBuilder] Parsed response object:", parsedResult);
+        } catch (jsonError) {
+          console.error("[PromptBuilder] JSON.parse failed:", jsonError);
+          // Throw a more specific error if JSON parsing itself fails
+          throw new Error(`Failed to parse JSON response: ${(jsonError as Error).message}`);
+        }
+        
+        // Now check the structure of the successfully parsed object
+        if (parsedResult && typeof parsedResult.content === 'string') {
+           updateBlock(index, parsedResult.content);
+           toast({ title: "Generation Complete", description: `Content generated for \"${block.label}\".` });
+        } else {
+          // Log the actual structure found if it's not as expected
+          console.error("[PromptBuilder] Parsed response missing expected structure { content: string, ... }. Found:", parsedResult);
+          throw new Error("Invalid content structure in parsed AI response"); // Keep this error distinct
+        }
+      } catch (parseError) {
+         // This outer catch now primarily handles the structure error or the JSON.parse error re-thrown above
+         console.error("Failed to process single block stream result:", parseError, "Raw content:", resultJson);
+         // Ensure the error message reflects the actual issue caught
+         throw new Error(`Failed to process AI response for single block: ${(parseError as Error).message}`);
+      }
+
+    } catch (error) {
+      console.error(`Error generating single block content for index ${index}:`, error);
+      toast({
+        title: `Error Generating Content`,
+        description: error instanceof Error ? error.message : "Generation failed.",
+        variant: "destructive",
+      });
+    } finally {
+      setGeneratingSingleBlockIndex(null);
+    }
+  }
+
+  const textColors = [
+    "text-red-500",
+    "text-blue-500",
+    "text-green-500",
+    "text-yellow-500",
+    "text-purple-500",
+    "text-pink-500",
+    "text-indigo-500",
+    "text-teal-500",
+  ]
+
+  // Define border colors
+  const borderColors = [
+    "bg-red-500",
+    "bg-blue-500",
+    "bg-green-500",
+    "bg-yellow-500",
+    "bg-purple-500",
+    "bg-pink-500",
+    "bg-indigo-500",
+    "bg-teal-500",
+  ];
+
+  // Map border colors to focus ring colors (explicitly list classes for Tailwind)
+  const focusRingColors: { [key: string]: string } = {
+    "bg-red-500": "focus:ring-red-500/50",
+    "bg-blue-500": "focus:ring-blue-500/50",
+    "bg-green-500": "focus:ring-green-500/50",
+    "bg-yellow-500": "focus:ring-yellow-500/50",
+    "bg-purple-500": "focus:ring-purple-500/50", // Keep purple as one option
+    "bg-pink-500": "focus:ring-pink-500/50",
+    "bg-indigo-500": "focus:ring-indigo-500/50",
+    "bg-teal-500": "focus:ring-teal-500/50",
+  };
+
+  // Helper function to render the assembled prompt with interactive labels
+  const renderAssembledPrompt = () => {
+    if (isLoading) {
+      return (
+        <div className="space-y-4">
+          <Skeleton className="h-4 w-3/4" />
+          <Skeleton className="h-4 w-full" />
+          <Skeleton className="h-4 w-2/3" />
+        </div>
+      );
     }
 
-    return assembledParts;
-  };
+    if (blocks.length === 0) {
+      return <span className="italic text-slate-500 dark:text-slate-500">No blocks configured for this template...</span>;
+    }
+
+    return blocks.map((block, index) => {
+      const borderColorClass = borderColors[index % borderColors.length]; // Cycle through colors
+      const focusRingClass = focusRingColors[borderColorClass] || "focus:ring-purple-500/50"; // Get corresponding focus ring class, fallback to purple
+
+      return (
+      // Wrap block in a relative div for border positioning
+      <div key={`${block.type}-${index}`} className="relative mb-6 pl-4 last:mb-0">
+        {/* Colored Border */}
+        <div className={cn("absolute left-0 top-0 bottom-0 w-1 rounded-full", borderColorClass)}></div>
+
+        {/* Block Header: Label and Toggle */}
+        <div className="flex items-center justify-between mb-2">
+          <label
+            htmlFor={`block-textarea-${index}`}
+            className={cn(
+              "ml-2 font-semibold text-base",
+              block.enabled ? "text-slate-800 dark:text-slate-200" : "text-slate-500 dark:text-slate-500 italic"
+            )}
+          >
+            {block.label} {block.enabled ? "" : "(Disabled)"}
+          </label>
+          <div className="flex items-center gap-2">
+            {/* Moved Info/AI buttons here */}
+            {block.enabled && (
+              <>
+                <TooltipProvider delayDuration={100}>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => setBlockInfoDialogOpenIndex(index)}
+                        className="text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 h-7 w-7"
+                        aria-label={`Info about ${block.label}`}
+                      >
+                        <InfoIcon size={16} />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent side="top" className="max-w-xs text-xs leading-normal text-slate-700 dark:text-slate-300">
+                      <p>{block.description || "No description available."}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+                <TooltipProvider delayDuration={100}>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleGenerateSingleBlock(index)}
+                        disabled={generatingSingleBlockIndex === index || isGeneratingAll}
+                        className="text-purple-500 hover:text-purple-700 dark:text-purple-400 dark:hover:text-purple-300 disabled:opacity-50 disabled:cursor-not-allowed h-7 w-7"
+                        aria-label={`Generate content for ${block.label}`}
+                      >
+                        <Sparkles size={16} />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent side="top" className="text-xs leading-normal text-slate-700 dark:text-slate-300">
+                      <p>{generatingSingleBlockIndex === index ? "Generating..." : "Generate with AI"}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </>
+            )}
+            <Switch
+              checked={block.enabled}
+              onCheckedChange={() => handleToggleBlock(index)}
+              aria-label={`Toggle ${block.label} block`}
+            />
+          </div>
+        </div>
+
+        {/* Textarea or Placeholder */}
+        <div className="relative"> {/* Container for Textarea + Buttons */}
+          {block.enabled && ( // Only render textarea if block is enabled
+            <TextareaAutosize
+              id={`block-textarea-${index}`}
+              value={block.content}
+              onChange={(e) => handleUpdateBlock(index, e.target.value)}
+              onFocus={() => setFocusedBlockIndex(index)}
+              placeholder={`Enter content for ${block.label}...`}
+              className={cn(
+                "w-full min-h-[100px] bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 focus:ring-2 rounded-md p-2 text-sm leading-relaxed max-w-prose",
+                "placeholder:text-slate-500 dark:placeholder:text-slate-500",
+                focusRingClass
+              )}
+              style={{ overflow: 'hidden' }}
+              ref={(el) => {
+                if (el) {
+                  blockRefs.current[index] = el; // Assign ref, ensure type
+                }
+              }}
+              disabled={!block.enabled || isLoading || isGeneratingAll || generatingBlockIndices.includes(index)}
+              aria-label={`${block.label} content`}
+              minRows={3}
+            />
+          )}
+          {!block.enabled && (
+             <div className="italic text-slate-500 dark:text-slate-600 border border-dashed border-slate-300 dark:border-slate-700 rounded-md p-4 h-[100px] flex items-center justify-center text-sm leading-relaxed max-w-prose">
+               Block content hidden when disabled.
+             </div>
+           )}
+        </div>
+      </div>
+    )
+  })
+}
 
   // Tour steps for onboarding
   interface TourStep {
@@ -605,111 +775,50 @@ export default function PromptBuilder({
         (template: PromptTemplate) =>
           template.id === activeTemplate && (
             <div key={`${template.id}-desc`} className="bg-white/90 dark:bg-slate-800/90 rounded-lg p-3 shadow-sm border border-slate-200 dark:border-slate-700 md:mx-4">
-              <p className="text-sm text-slate-600 dark:text-slate-400 italic">{template.description}</p>
+              <span className="flex items-center gap-2">
+                <InfoIcon size={20} className="text-slate-400 dark:text-slate-400" />
+                <p className="text-sm text-slate-600 dark:text-slate-400 italic leading-normal">{template.description}</p>
+              </span>
             </div>
           ),
       )}
 
-      {/* Main Content Area */}
-      <div className="flex flex-col lg:flex-row gap-8 md:px-4">
-        {/* Left Column: Prompt Blocks */}
-        <div className="lg:w-1/2 space-y-6">
-          <AnimatePresence>
-            {isLoading ? (
-              // Loading skeletons
-              Array.from({ length: 3 }).map((_, index) => (
-                <motion.div
-                  key={`skeleton-${index}`}
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: 20 }}
-                  transition={{ duration: 0.3, delay: index * 0.1 }}
-                >
-                  <div className="space-y-2">
-                    <Skeleton className="h-8 w-3/4" />
-                    <Skeleton className="h-24 w-full" />
-                  </div>
-                </motion.div>
-              ))
-            ) : (
-              blocks.map((block, index) => (
-                <motion.div
-                  key={`${block.type}-${index}`}
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: 20 }}
-                  transition={{ duration: 0.3, delay: index * 0.1 }}
-                  ref={(el) => {
-                    if (el) {
-                      blockContainerRefs.current[index] = el as HTMLDivElement
-                    }
-                  }}
-                  className="prompt-block"
-                >
-                  <PromptBlockComponent
-                    block={block}
-                    index={index}
-                    isFocused={focusedBlockIndex === index}
-                    isDisabled={!block.enabled}
-                    isAwaitingGeneration={generatingBlockIndices.includes(index)}
-                    onChange={(content) => handleUpdateBlock(index, content)}
-                    onFocus={() => setFocusedBlockIndex(index)}
-                    onToggle={() => handleToggleBlock(index)}
-                    isRecording={recordingBlockIndex === index}
-                    onRecordingToggle={() => toggleRecording(index)}
-                    selectedModel={selectedModel}
-                    ref={(el) => {
-                      if (el) {
-                        blockRefs.current[index] = el
-                      }
-                    }}
-                  />
-                </motion.div>
-              ))
-            )}
-          </AnimatePresence>
-        </div>
-
-        {/* Right Column: Assembled Prompt */}
-        <div className="lg:w-1/2 lg:sticky lg:top-24 h-fit">
+      {/* Main Content Area - Now Single Column */}
+      <div className="w-full md:px-4"> {/* Removed flex container, adjusted padding */}
+        {/* Right Column (now main content): Assembled Prompt & Editing Area */}
+        <div className="w-full h-fit"> {/* Removed lg:w-1/2, lg:sticky, lg:top-24 */}
           <div className="bg-white/90 dark:bg-slate-800/90 rounded-lg p-2 md:p-6 shadow-lg assembled-prompt border border-slate-200 dark:border-slate-700">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-bold">Assembled Prompt</h2>
+              <h2 className="text-xl font-semibold text-slate-900 dark:text-slate-100">Build Your {promptTemplates.find(t => t.id === activeTemplate)?.name || activeTemplate} Prompt</h2>
               <div className="flex gap-2">
-
-              <Button 
-                onClick={copyPrompt} 
-                size="sm"
-                className={cn(
-                  "w-fit shadow-sm transition-colors", 
-                  isCopied ? "bg-green-600 hover:bg-green-700" : "bg-purple-600 hover:bg-purple-700 text-white"
-                )} 
-                disabled={isCopied}
-              >
-                {isCopied ? (
-                  <>
-                    <Check size={16} className="mr-2" />
-                    Copied
-                  </>
-                ) : (
-                  <>
-                    <Copy size={16} className="mr-2" />
-                    Copy
-                  </>
-                )}
-              </Button>
+                <Button 
+                  onClick={copyPrompt} 
+                  size="sm"
+                  className={cn(
+                    "w-fit shadow-sm transition-colors", 
+                    isCopied ? "bg-green-600 hover:bg-green-700" : "bg-purple-600 hover:bg-purple-700 text-white"
+                  )} 
+                  disabled={isCopied}
+                >
+                  {isCopied ? (
+                    <>
+                      <Check size={16} className="mr-2" />
+                      Copied
+                    </>
+                  ) : (
+                    <>
+                      <Copy size={16} className="mr-2" />
+                      Copy
+                    </>
+                  )}
+                </Button>
               </div>
             </div>
-            <div className="bg-white dark:bg-slate-900 p-1 md:p-4 rounded text-sm overflow-y-auto max-h-[60vh]">
-              {isLoading ? (
-                <div className="space-y-4">
-                  <Skeleton className="h-4 w-3/4" />
-                  <Skeleton className="h-4 w-full" />
-                  <Skeleton className="h-4 w-2/3" />
-                </div>
-              ) : (
-                renderAssembledPrompt()
-              )}
+            <div className="bg-white dark:bg-slate-900 p-1 md:p-4 rounded text-sm"> {/* Removed overflow-y-auto */ }
+              {/* Content is now rendered directly */}
+              <TooltipProvider> {/* Added TooltipProvider wrapper */}
+                {renderAssembledPrompt()}
+              </TooltipProvider>
             </div>
           </div>
         </div>
@@ -725,24 +834,25 @@ export default function PromptBuilder({
         onDelete={deleteSavedPrompt}
       />
 
-      
       {/* Generate All Dialog */}
       <Dialog open={showGenerateAllDialog} onOpenChange={setShowGenerateAllDialog}>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
-            <DialogTitle>Generate Content for Empty Blocks</DialogTitle>
-            <DialogDescription>
+            <DialogTitle className="text-lg font-semibold text-slate-900 dark:text-slate-100">Generate Content for Empty Blocks</DialogTitle>
+            <DialogDescription className="text-sm text-slate-600 dark:text-slate-400 leading-normal pt-1">
               Enter the overall goal for the AI. Content will be generated for all empty, enabled blocks in the
               current template ('{promptTemplates.find(t => t.id === activeTemplate)?.name || activeTemplate}').
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
-            <Textarea
+            <TextareaAutosize 
               id="goal-input"
               placeholder="e.g., Draft a technical blog post explaining React Server Components..."
               value={generateAllGoal}
               onChange={(e) => setGenerateAllGoal(e.target.value)}
-              className="min-h-[100px] resize-none bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-purple-500/20 placeholder:text-slate-400 dark:placeholder:text-slate-500"
+              className="min-h-[100px] w-full resize-none bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-purple-500/20 placeholder:text-slate-500 dark:placeholder:text-slate-500 rounded-md p-2 text-sm leading-relaxed max-w-prose"
+              style={{ overflow: 'hidden' }}
+              minRows={3}
             />
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
               <PromptSuggestion 
@@ -802,6 +912,28 @@ export default function PromptBuilder({
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Render BlockInfoDialog using the dedicated component */}
+      {blockInfoDialogOpenIndex !== null && (() => {
+          const block = blocks[blockInfoDialogOpenIndex];
+          const config = block ? blockConfigs[block.type] : undefined;
+          const color = block ? textColors[blockInfoDialogOpenIndex % textColors.length] : undefined;
+
+          // Only render if we have a valid config and color
+          if (config && color) {
+            return (
+              <BlockInfoDialog
+                open={true} // Open is controlled by the outer condition
+                onOpenChange={(open) => !open && setBlockInfoDialogOpenIndex(null)}
+                blockConfig={config}
+                color={color} // Pass the calculated color
+              />
+            );
+          }
+          // Optional: Render something else or nothing if config/color is missing
+          return null;
+        })()
+      }
     </div>
   )
 }

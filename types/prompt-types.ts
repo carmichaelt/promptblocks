@@ -1,3 +1,5 @@
+import type React from 'react';
+
 export interface PromptBlock {
   type: string
   label: string
@@ -24,4 +26,5 @@ export interface PromptTemplate {
   name: string
   description: string
   blocks: PromptBlock[]
+  icon: React.ElementType
 }

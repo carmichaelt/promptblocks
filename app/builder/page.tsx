@@ -30,7 +30,7 @@ export default function BuilderPage() {
   }, [])
 
   return (
-    <div className="container mx-auto px-0 md:px-4">
+    <div className="container mx-auto px-0 md:px-4 max-w-[850px]">
       <div className="mb-12 text-center">
         <h1 className="text-5xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-purple-600 via-pink-500 to-amber-500">
           Block Builder
