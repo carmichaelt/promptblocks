@@ -19,7 +19,6 @@ import { promptTemplates } from "@/lib/prompt-config"
 import type { PromptBlock, PromptTemplate } from "@/types/prompt-types"
 import PromptBlockComponent from "./prompt-block"
 import SavedPromptsDialog from "./saved-prompts-dialog"
-import OnboardingTour from "./onboarding-tour"
 import { Textarea } from "@/components/ui/textarea"
 import { PromptSuggestion } from "@/components/ui/prompt-suggestion"
 import { Navbar } from "@/components/navbar"
@@ -92,26 +91,35 @@ export default function PromptBuilder({
   const blockContainerRefs = useRef<Array<HTMLDivElement | null>>([])
   const [isLoadingBlocks, setIsLoadingBlocks] = useState(true)
 
-  // Initialize blocks from template or initial props
+  // Handle initial load
   useEffect(() => {
-    setIsLoadingBlocks(true)
-    
-    // Prioritize setting blocks from the initialBlocks prop if it exists and has content
     if (initialBlocks && initialBlocks.length > 0) {
       setBlocks(initialBlocks)
       if (initialTemplateId && activeTemplate !== initialTemplateId) {
         setActiveTemplate(initialTemplateId)
       }
-    } else {
-      const template = promptTemplates.find((t) => t.id === activeTemplate)
-      if (template) {
-        setBlocks(template.blocks)
-      }
+    }
+  }, []) // Empty dependency array for initial load only
+
+  // Initialize blocks from template
+  useEffect(() => {
+    setIsLoadingBlocks(true)
+    
+    // Get the current template
+    const template = promptTemplates.find((t) => t.id === activeTemplate)
+    
+    // If we have a template, set its blocks
+    if (template) {
+      setBlocks(template.blocks.map(block => ({
+        ...block,
+        content: '', // Reset content when switching templates
+        enabled: block.enabled ?? !block.label.includes('(Optional)') // Preserve enabled state or set default
+      })))
     }
 
     // Simulate loading delay for smoother transitions
     setTimeout(() => setIsLoadingBlocks(false), 500)
-  }, [initialBlocks, initialTemplateId])
+  }, [activeTemplate]) // Add activeTemplate as dependency
 
   // Load saved prompts from localStorage
   useEffect(() => {
@@ -651,14 +659,14 @@ export default function PromptBuilder({
       {promptTemplates.map(
         (template: PromptTemplate) =>
           template.id === activeTemplate && (
-            <div key={`${template.id}-desc`} className="bg-white/90 dark:bg-slate-800/90 rounded-lg p-3 shadow-sm border border-slate-200 dark:border-slate-700 mx-4">
+            <div key={`${template.id}-desc`} className="bg-white/90 dark:bg-slate-800/90 rounded-lg p-3 shadow-sm border border-slate-200 dark:border-slate-700 md:mx-4">
               <p className="text-sm text-slate-600 dark:text-slate-400 italic">{template.description}</p>
             </div>
           ),
       )}
 
       {/* Main Content Area */}
-      <div className="flex flex-col lg:flex-row gap-8 px-1 md:px-4">
+      <div className="flex flex-col lg:flex-row gap-8 md:px-4">
         {/* Left Column: Prompt Blocks */}
         <div className="lg:w-1/2 space-y-6">
           <AnimatePresence>
@@ -760,8 +768,7 @@ export default function PromptBuilder({
         onDelete={deleteSavedPrompt}
       />
 
-      <OnboardingTour steps={tourSteps} isOpen={showTour} onClose={() => setShowTour(false)} />
-
+      
       {/* Generate All Dialog */}
       <Dialog open={showGenerateAllDialog} onOpenChange={setShowGenerateAllDialog}>
         <DialogContent className="sm:max-w-[425px]">

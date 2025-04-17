@@ -36,9 +36,8 @@ export function AppNav() {
             href="/" 
             className="flex items-center gap-3 transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 rounded-md"
           >
-            <div className="glass-container p-1.5 rounded-md">
-              <Blocks className="h-6 w-6 text-primary dark:text-primary-foreground" />
-            </div>
+            <Blocks className="h-4 w-4 text-gray-900 dark:text-gray-100" />
+            
             <span className="font-semibold text-xl text-gray-900 dark:text-gray-100">
               PromptBlocks
             </span>
@@ -74,8 +73,8 @@ export function AppNav() {
             </div>
 
             {/* Mobile Navigation */}
-            <div className="md:hidden flex items-center gap-3">
-              {navigation.map((item) => {
+            <div className="md:hidden flex items-center gap-1">
+              {navigation.map((item: { name: string; href: string; icon: React.ElementType }) => {
                 const isActive = pathname === item.href
                 return (
                   <Link
@@ -89,7 +88,7 @@ export function AppNav() {
                         : "text-gray-500 dark:text-gray-400"
                     )}
                   >
-                    <item.icon className="h-5 w-5" />
+                    <item.icon className="h-4 w-4" />
                     <span className="sr-only">{item.name}</span>
                     {isActive && (
                       <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary dark:bg-primary-foreground" />
@@ -100,7 +99,7 @@ export function AppNav() {
             </div>
 
             {/* Theme Toggle */}
-            <div className="border-l border-slate-200/80 dark:border-slate-800/80 pl-4 ml-2">
+            <div className="border-l border-slate-200/80 dark:border-slate-800/80 pl-2 ml-2">
               <ThemeToggle />
             </div>
           </div>

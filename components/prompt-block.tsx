@@ -2,7 +2,7 @@
 
 import { forwardRef, useState, useRef } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { Sparkles, Info, Mic, MicOff, GripVertical, Lightbulb } from "lucide-react"
+import { Sparkles, Info, Mic, MicOff, Lightbulb } from "lucide-react"
 import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
 import { Switch } from "@/components/ui/switch"
@@ -28,8 +28,6 @@ interface PromptBlockProps {
   onToggle: () => void
   isRecording: boolean
   onRecordingToggle: () => void
-  onDragStart?: () => void
-  onDragEnd?: () => void
   selectedModel: string
   isAwaitingGeneration: boolean
 }
@@ -46,8 +44,6 @@ const PromptBlockComponent = forwardRef<HTMLTextAreaElement, PromptBlockProps>(
       onToggle,
       isRecording,
       onRecordingToggle,
-      onDragStart,
-      onDragEnd,
       selectedModel,
       isAwaitingGeneration,
     },
@@ -84,16 +80,16 @@ const PromptBlockComponent = forwardRef<HTMLTextAreaElement, PromptBlockProps>(
     })
 
     const blockColors = {
-      context: "border-blue-300 bg-blue-50/90 dark:border-blue-700 dark:bg-blue-950/80",
-      role: "border-purple-300 bg-purple-50/90 dark:border-purple-700 dark:bg-purple-950/80",
-      task: "border-green-300 bg-green-50/90 dark:border-green-700 dark:bg-green-950/80",
-      examples: "border-amber-300 bg-amber-50/90 dark:border-amber-700 dark:bg-amber-950/80",
-      constraints: "border-red-300 bg-red-50/90 dark:border-red-700 dark:bg-red-950/80",
-      output: "border-teal-300 bg-teal-50/90 dark:border-teal-700 dark:bg-teal-950/80",
-      persona: "border-indigo-300 bg-indigo-50/90 dark:border-indigo-700 dark:bg-indigo-950/80",
-      format: "border-pink-300 bg-pink-50/90 dark:border-pink-700 dark:bg-pink-950/80",
-      audience: "border-orange-300 bg-orange-50/90 dark:border-orange-700 dark:bg-orange-950/80",
-      tone: "border-cyan-300 bg-cyan-50/90 dark:border-cyan-700 dark:bg-cyan-950/80",
+      context: "border-blue-300 bg-blue-50/90 dark:border-blue-700 dark:bg-blue-900/95",
+      role: "border-purple-300 bg-purple-50/90 dark:border-purple-700 dark:bg-purple-900/95",
+      task: "border-green-300 bg-green-50/90 dark:border-green-700 dark:bg-green-900/95",
+      examples: "border-amber-300 bg-amber-50/90 dark:border-amber-700 dark:bg-amber-900/95",
+      constraints: "border-red-300 bg-red-50/90 dark:border-red-700 dark:bg-red-900/95",
+      output: "border-teal-300 bg-teal-50/90 dark:border-teal-700 dark:bg-teal-900/95",
+      persona: "border-indigo-300 bg-indigo-50/90 dark:border-indigo-700 dark:bg-indigo-900/95",
+      format: "border-pink-300 bg-pink-50/90 dark:border-pink-700 dark:bg-pink-900/95",
+      audience: "border-orange-300 bg-orange-50/90 dark:border-orange-700 dark:bg-orange-900/95",
+      tone: "border-cyan-300 bg-cyan-50/90 dark:border-cyan-700 dark:bg-cyan-900/95",
     }
 
     const showLoadingOverlay = isGenerating || isAwaitingGeneration
@@ -143,20 +139,10 @@ const PromptBlockComponent = forwardRef<HTMLTextAreaElement, PromptBlockProps>(
 
         <div className="mb-2 flex justify-between items-center">
           <div className="flex items-center gap-2">
-            {onDragStart && onDragEnd && (
-              <button
-                className="cursor-grab hover:text-slate-600 dark:hover:text-slate-400"
-                onMouseDown={onDragStart}
-                onMouseUp={onDragEnd}
-                aria-label="Drag to reorder"
-              >
-                <GripVertical size={16} />
-              </button>
-            )}
             <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
-              {index + 1}. {block.label}
+              {block.label}
             </span>
-            <span className="text-xs text-slate-500 dark:text-slate-400">(Alt+{index + 1})</span>
+            {/* <span className="text-xs text-slate-500 dark:text-slate-400">(Alt+{index + 1})</span> */}
             <div className="ml-2">
               <Switch
                 checked={block.enabled}
@@ -184,7 +170,7 @@ const PromptBlockComponent = forwardRef<HTMLTextAreaElement, PromptBlockProps>(
               </Tooltip>
             </TooltipProvider>
 
-            <TooltipProvider>
+            {/*<TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button
@@ -201,7 +187,7 @@ const PromptBlockComponent = forwardRef<HTMLTextAreaElement, PromptBlockProps>(
                   <p>{isRecording ? "Stop voice input" : "Start voice input"}</p>
                 </TooltipContent>
               </Tooltip>
-            </TooltipProvider>
+            </TooltipProvider>*/}
 
             <TooltipProvider>
               <Tooltip>

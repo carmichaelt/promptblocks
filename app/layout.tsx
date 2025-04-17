@@ -53,7 +53,7 @@ export default function RootLayout({
             <AppNav />
             <main className="flex-1">
               <div className="container relative mx-auto px-4 py-8 sm:py-12 lg:py-16">
-                <div className="mx-auto rounded-xl bg-white dark:bg-gray-800 shadow-lg dark:shadow-dark-lg shadow-gray-200/50 dark:shadow-gray-950/50 backdrop-blur-sm p-6 sm:p-8 lg:p-10 ring-1 ring-gray-200/70 dark:ring-gray-700/30">
+                <div className="mx-auto rounded-xl bg-white dark:bg-gray-800 shadow-lg dark:shadow-dark-lg shadow-gray-200/50 dark:shadow-gray-950/50 backdrop-blur-sm p-4 lg:p-10 ring-1 ring-gray-200/70 dark:ring-gray-700/30">
                   {children}
                 </div>
               </div>

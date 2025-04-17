@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import { Sparkles, ArrowUpIcon } from "lucide-react"
 import { toast } from "@/components/ui/use-toast"
@@ -11,12 +11,40 @@ import {
   PromptInputTextarea,
 } from "@/components/ui/prompt-input"
 import { PromptSuggestion } from "@/components/ui/prompt-suggestion"
+import { motion, AnimatePresence } from "framer-motion"
 
 interface SimplePromptInputProps {
   onGenerationComplete: (data: { templateId: string; blocks: PromptBlock[] }) => void
   availableModels: string[] // Or fetch dynamically if needed
   selectedModel: string // Pass down selected model
 }
+
+const suggestions = [
+  {
+    text: "Create a NextJS app to track my exercise",
+    gradient: "from-purple-200 to-pink-200 dark:from-purple-800/50 dark:to-pink-800/50",
+  },
+  {
+    text: "Draft a marketing email about our new features",
+    gradient: "from-pink-200 to-amber-200 dark:from-pink-800/50 dark:to-amber-800/50",
+  },
+  {
+    text: "Suggest ideas for a fantasy novel",
+    gradient: "from-amber-200 to-purple-200 dark:from-amber-800/50 dark:to-purple-800/50",
+  },
+  {
+    text: "Design a landing page for my startup",
+    gradient: "from-blue-200 to-purple-200 dark:from-blue-800/50 dark:to-purple-800/50",
+  },
+  {
+    text: "Write a blog post about AI trends",
+    gradient: "from-green-200 to-blue-200 dark:from-green-800/50 dark:to-blue-800/50",
+  },
+  {
+    text: "Create a social media content calendar",
+    gradient: "from-purple-200 to-blue-200 dark:from-purple-800/50 dark:to-blue-800/50",
+  },
+]
 
 export default function SimplePromptInput({
   onGenerationComplete,
@@ -25,6 +53,24 @@ export default function SimplePromptInput({
 }: SimplePromptInputProps) {
   const [simplePrompt, setSimplePrompt] = useState("")
   const [isLoading, setIsLoading] = useState(false)
+  const [currentSuggestionIndex, setCurrentSuggestionIndex] = useState(0)
+  const textareaRef = useRef<HTMLTextAreaElement>(null)
+
+  // Auto-focus the textarea on component mount
+  useEffect(() => {
+    if (textareaRef.current) {
+      textareaRef.current.focus()
+    }
+  }, [])
+
+  // Auto-rotate suggestions
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentSuggestionIndex((current) => (current + 1) % suggestions.length)
+    }, 6000) // Change every 6 seconds
+
+    return () => clearInterval(interval)
+  }, [])
 
   const handleGenerate = async () => {
     if (!simplePrompt.trim()) {
@@ -90,40 +136,30 @@ export default function SimplePromptInput({
         </p>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 max-w-3xl mx-auto px-4">
-        <PromptSuggestion 
-          className="w-full bg-gradient-to-br from-slate-50 to-white dark:from-slate-800/50 dark:to-slate-800 
-                     border border-slate-200/50 dark:border-slate-700/50
-                     shadow-sm hover:shadow-md dark:shadow-none
-                     transition-all duration-200
-                     hover:scale-[1.02] active:scale-[0.98]
-                     dark:hover:bg-slate-800"
-          onClick={() => setSimplePrompt("Create a NextJS app to track my exercise")}
-        >
-          Create a NextJS app to track my exercise
-        </PromptSuggestion>
-        <PromptSuggestion 
-          className="w-full bg-gradient-to-br from-slate-50 to-white dark:from-slate-800/50 dark:to-slate-800 
-                     border border-slate-200/50 dark:border-slate-700/50
-                     shadow-sm hover:shadow-md dark:shadow-none
-                     transition-all duration-200
-                     hover:scale-[1.02] active:scale-[0.98]
-                     dark:hover:bg-slate-800"
-          onClick={() => setSimplePrompt("Create a marketing email about our new features")}
-        >
-          Draft a marketing email about our new features
-        </PromptSuggestion>
-        <PromptSuggestion 
-          className="w-full sm:col-span-2 lg:col-span-1 bg-gradient-to-br from-slate-50 to-white dark:from-slate-800/50 dark:to-slate-800 
-                     border border-slate-200/50 dark:border-slate-700/50
-                     shadow-sm hover:shadow-md dark:shadow-none
-                     transition-all duration-200
-                     hover:scale-[1.02] active:scale-[0.98]
-                     dark:hover:bg-slate-800"
-          onClick={() => setSimplePrompt("Generate ideas for a fantasy novel")}
-        >
-          Suggest ideas for a fantasy novel
-        </PromptSuggestion>
+      <div className="relative py-6 max-w-3xl mx-auto px-4">
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={currentSuggestionIndex}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.5 }}
+            className="absolute inset-0"
+          >
+            <PromptSuggestion 
+              className={`w-full bg-gradient-to-br dark:bg-gradient-to-br ${suggestions[currentSuggestionIndex].gradient} 
+                       border border-slate-200/50 dark:border-slate-500/50
+                       shadow-sm hover:shadow-md dark:shadow-none
+                       transition-all duration-200
+                       hover:scale-[1.02] active:scale-[0.98]
+                       dark:hover:bg-slate-800
+                       flex items-center justify-center text-center px-6`}
+              onClick={() => setSimplePrompt(suggestions[currentSuggestionIndex].text)}
+            >
+              {suggestions[currentSuggestionIndex].text}
+            </PromptSuggestion>
+          </motion.div>
+        </AnimatePresence>
       </div>
 
       <PromptInput
@@ -131,11 +167,13 @@ export default function SimplePromptInput({
         onValueChange={setSimplePrompt}
         onSubmit={handleGenerate}
         isLoading={isLoading}
-        className="max-w-3xl mx-auto bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/50 shadow-sm"
+        className="max-w-3xl mx-auto bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-600/50 shadow-dark-lg dark:shadow-slate-500"
       >
         <PromptInputTextarea
-          placeholder="Describe what you want to achieve, or try a suggestion above"
-          className="min-h-[100px] placeholder:text-slate-400 dark:placeholder:text-slate-500"
+          ref={textareaRef}
+          placeholder="Ask anything?"
+          className="text-lg min-h-[100px] bg-white dark:bg-slate-900 placeholder:text-slate-700 dark:placeholder:text-slate-300 dark:text-slate-200
+                    after:content-['|'] after:ml-[1px] after:animate-blink after:text-slate-700 dark:after:text-slate-300"
         />
         <PromptInputActions className="justify-end">
           <Button

@@ -2,7 +2,7 @@
 
 [![Next.js](https://img.shields.io/badge/Next.js-15-black?style=flat-square&logo=next.js)](https://nextjs.org/)
 
-**Submission for the 2025 Next.JS Global Hackathon Challenge**
+**Submission for the 2024 Next.JS Global Hackathon Challenge**
 
 ## Overview
 
@@ -67,6 +67,10 @@ pnpm dev
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the application.
 
+## 🤝 Contributing
+
+We welcome contributions from the community! Please read our [Contributing Guidelines](CONTRIBUTING.md) and [Code of Conduct](CODE_OF_CONDUCT.md) before getting started.
+
 ## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details (if you add one).
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
