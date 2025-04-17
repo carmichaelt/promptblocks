@@ -2,14 +2,7 @@
 
 import { Book } from "@/components/ui/book"
 import { InfoIcon, ArrowLeft } from "lucide-react"
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { Metadata } from "next"
 
-export const metadata: Metadata = {
-  title: "PromptBlocks - Resources",
-  description: "A collection of resources for prompt engineering",
-}
 
 interface Resource {
   title: string

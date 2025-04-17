@@ -3,14 +3,10 @@
 import { useState, useEffect } from "react"
 import PromptBuilder from "@/components/prompt-builder"
 import type { PromptBlock } from "@/types/prompt-types"
-import { Metadata } from "next"
+
 // Assuming you have a way to get available models, e.g., from config
 const availableModels = ["grok-3-mini", "grok-3-large", "gpt-4", "claude-3"]
 
-export const metadata: Metadata = {
-  title: "PromptBlocks - Build Better AI Prompts",
-  description: "A visual tool to help you build better AI prompts by assembling specialized blocks",
-}
 
 export default function BuilderPage() {
   const [selectedModel, setSelectedModel] = useState(availableModels[0])

@@ -4,15 +4,10 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import SimplePromptInput from "@/components/simple-prompt-input"
 import type { PromptBlock } from "@/types/prompt-types"
-import { Metadata } from "next"
 
 // Assuming you have a way to get available models, e.g., from config
 const availableModels = ["grok-3-mini", "grok-3-large", "gpt-4", "claude-3"]
 
-export const metadata: Metadata = {
-  title: "PromptBlocks - Quick Prompt",
-  description: "Let us craft the perfect prompt for you",
-}
 
 export default function QuickPromptPage() {
   const [selectedModel, setSelectedModel] = useState(availableModels[0])

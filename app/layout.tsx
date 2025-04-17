@@ -19,6 +19,8 @@ const jakarta = Plus_Jakarta_Sans({
 })
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://your-app-url.com"), 
+  applicationName: "PromptBlocks",
   title: "PromptBlocks - Build Better AI Prompts",
   description: "A visual tool to help you build better AI prompts by assembling specialized blocks",
   keywords: ["AI", "Prompts", "LLM", "ChatGPT", "Prompt Engineering", "AI Tools"],
@@ -27,6 +29,18 @@ export const metadata: Metadata = {
     { media: "(prefers-color-scheme: light)", color: "white" },
     { media: "(prefers-color-scheme: dark)", color: "black" },
   ],
+  openGraph: {
+    title: "PromptBlocks - Build Better AI Prompts",
+    description: "A visual tool to help you build better AI prompts by assembling specialized blocks",
+    siteName: "PromptBlocks",
+    locale: "en_US",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "PromptBlocks - Build Better AI Prompts",
+    description: "A visual tool to help you build better AI prompts by assembling specialized blocks",
+  },
   icons: {
     icon: "/favicon.ico",
   },
