@@ -43,6 +43,7 @@
     "@radix-ui/react-tooltip": "^1.1.6",
     "@react-three/drei": "^10.0.6",
     "@react-three/fiber": "^9.1.2",
+    "@vercel/analytics": "^1.5.0",
     "ai": "^4.3.7",
     "autoprefixer": "^10.4.20",
     "class-variance-authority": "^0.7.1",

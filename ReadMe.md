@@ -6,7 +6,7 @@
 
 ## Overview
 
-PromptBlocks is a web application built with Next.js 15 designed to help users craft more effective prompts for Large Language Models (LLMs). By leveraging AI and incorporating best practices inspired by Google's prompting guidelines, PromptBlocks aims to enhance the quality and precision of generated outputs.
+PromptBlocks is a web application built with Next.js 15 designed to help users craft more effective prompts for Large Language Models (LLMs). By leveraging AI and incorporating best practices inspired by Google's prompting guidelines, PromptBlocks aims to enhance the quality and precision of generated outputs. Users can enter a simple prompt and the app will use AI to pick a prompt template and then will help the user populate the template. The user can then copy the enhanced prompt into their LLM of choice. There is also a resource library for further reading.
 
 Reference: [Gemini for Google Workspace Prompting Guide 101](https://services.google.com/fh/files/misc/gemini-for-google-workspace-prompting-guide-101.pdf)
 

@@ -7,6 +7,7 @@ import { AnimatedGridPattern } from "@/components/ui/animated-grid-pattern"
 import { AppNav } from "@/components/app-nav"
 import { cn } from "@/lib/utils"
 import { ThemeProvider } from "@/components/theme-provider"
+import { Analytics } from "@vercel/analytics/react"
 
 const inter = Inter({ 
   subsets: ["latin"],
@@ -58,6 +59,7 @@ export default function RootLayout({
       jakarta.variable
     )} suppressHydrationWarning>
       <body className="min-h-screen bg-gray-50 dark:bg-gray-900 font-sans antialiased">
+        <Analytics />
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
