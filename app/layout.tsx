@@ -23,10 +23,12 @@ export const metadata: Metadata = {
   description: "A visual tool to help you build better AI prompts by assembling specialized blocks",
   keywords: ["AI", "Prompts", "LLM", "ChatGPT", "Prompt Engineering", "AI Tools"],
   authors: [{ name: "PromptBlocks Team" }],
-  openGraph: {
-    title: "PromptBlocks - Build Better AI Prompts",
-    description: "A visual tool to help you build better AI prompts by assembling specialized blocks",
-    type: "website",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "white" },
+    { media: "(prefers-color-scheme: dark)", color: "black" },
+  ],
+  icons: {
+    icon: "/favicon.ico",
   },
 }
 
