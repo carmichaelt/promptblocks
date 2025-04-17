@@ -23,6 +23,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { PromptSuggestion } from "@/components/ui/prompt-suggestion"
 import { Navbar } from "@/components/navbar"
 import { Skeleton } from "@/components/ui/skeleton"
+import { usePromptStore } from "@/lib/stores/prompt-store"
 
 interface SpeechRecognition extends EventTarget {
   continuous: boolean
@@ -59,14 +60,19 @@ export default function PromptBuilder({
   selectedModelFromParent,
   onModelChangeFromParent,
 }: PromptBuilderProps) {
-  // Use initialTemplateId if provided, otherwise default
-  // --- DEBUG LOG --- 
-  console.log("[PromptBuilder] Initial Props Received:", { initialTemplateId, initialBlocks });
-  // --- END DEBUG LOG ---
+  // Replace state with store
+  const {
+    blocks,
+    activeTemplate,
+    isLoading,
+    loadInitialData,
+    loadSavedPrompt,
+    loadFromHistory,
+    updateBlock,
+    toggleBlock,
+    setActiveTemplate,
+  } = usePromptStore()
 
-  const [activeTemplate, setActiveTemplate] = useState(initialTemplateId || "general")
-  // Use initialBlocks if provided, otherwise empty array (will be populated by useEffect)
-  const [blocks, setBlocks] = useState<PromptBlock[]>(initialBlocks || [])
   const [recordingBlockIndex, setRecordingBlockIndex] = useState<number | null>(null)
   const [focusedBlockIndex, setFocusedBlockIndex] = useState<number | null>(null)
   const [savedPromptsOpen, setSavedPromptsOpen] = useState(false)
@@ -74,7 +80,6 @@ export default function PromptBuilder({
   const [savedPrompts, setSavedPrompts] = useState<{ name: string; template: PromptTemplate }[]>([])
   const [isGeneratingAll, setIsGeneratingAll] = useState(false)
   const [generatingBlockIndices, setGeneratingBlockIndices] = useState<number[]>([])
-  // Use model from parent prop
   const [selectedModel, setSelectedModel] = useState(selectedModelFromParent)
   const [showTour, setShowTour] = useState(false)
   const [promptHistory, setPromptHistory] = useState<{ 
@@ -89,37 +94,17 @@ export default function PromptBuilder({
   const recognitionRef = useRef<SpeechRecognition | null>(null)
   const blockRefs = useRef<Array<HTMLTextAreaElement | null>>([])
   const blockContainerRefs = useRef<Array<HTMLDivElement | null>>([])
-  const [isLoadingBlocks, setIsLoadingBlocks] = useState(true)
 
   // Handle initial load
   useEffect(() => {
     if (initialBlocks && initialBlocks.length > 0) {
-      setBlocks(initialBlocks)
-      if (initialTemplateId && activeTemplate !== initialTemplateId) {
-        setActiveTemplate(initialTemplateId)
-      }
+      loadInitialData(initialTemplateId || 'general', initialBlocks)
+    } else if (initialTemplateId) {
+      setActiveTemplate(initialTemplateId)
+    } else {
+      setActiveTemplate('general')
     }
-  }, []) // Empty dependency array for initial load only
-
-  // Initialize blocks from template
-  useEffect(() => {
-    setIsLoadingBlocks(true)
-    
-    // Get the current template
-    const template = promptTemplates.find((t) => t.id === activeTemplate)
-    
-    // If we have a template, set its blocks
-    if (template) {
-      setBlocks(template.blocks.map(block => ({
-        ...block,
-        content: '', // Reset content when switching templates
-        enabled: block.enabled ?? !block.label.includes('(Optional)') // Preserve enabled state or set default
-      })))
-    }
-
-    // Simulate loading delay for smoother transitions
-    setTimeout(() => setIsLoadingBlocks(false), 500)
-  }, [activeTemplate]) // Add activeTemplate as dependency
+  }, []) // Only run on mount
 
   // Load saved prompts from localStorage
   useEffect(() => {
@@ -219,9 +204,7 @@ export default function PromptBuilder({
             .map((result: any) => result.transcript)
             .join("")
 
-          setBlocks((prev) =>
-            prev.map((block, index) => (index === recordingBlockIndex ? { ...block, content: transcript } : block)),
-          )
+          updateBlock(recordingBlockIndex, transcript)
         }
       }
 
@@ -266,12 +249,16 @@ export default function PromptBuilder({
     }
   }
 
-  const toggleBlockEnabled = (index: number) => {
-    setBlocks((prev) => prev.map((block, i) => (i === index ? { ...block, enabled: !block.enabled } : block)))
+  const handleUpdateBlock = (index: number, content: string) => {
+    updateBlock(index, content)
   }
 
-  const updateBlockContent = (index: number, content: string) => {
-    setBlocks((prev) => prev.map((block, i) => (i === index ? { ...block, content } : block)))
+  const handleToggleBlock = (index: number) => {
+    toggleBlock(index)
+  }
+
+  const handleTemplateChange = (templateId: string) => {
+    setActiveTemplate(templateId)
   }
 
   const assemblePrompt = () => {
@@ -312,20 +299,19 @@ export default function PromptBuilder({
     })
   }
 
-  // Function to load a prompt from history
-  const loadFromHistory = (historyItem: typeof promptHistory[0]) => {
-    if (!historyItem) return; // Safety check
-    
-    // Set blocks first, then template to avoid race condition
-    setBlocks(historyItem.blocks || [])
-    // Use setTimeout to ensure blocks are set before changing template
-    setTimeout(() => {
-      setActiveTemplate(historyItem.template || "general")
-    }, 0)
-    
-    // Close the history dialog
+  const handleLoadSavedPrompt = (template: PromptTemplate) => {
+    loadSavedPrompt(template)
+    setSavedPromptsOpen(false)
+    toast({
+      title: "Prompt Loaded",
+      description: "Your saved prompt has been loaded successfully",
+    })
+  }
+
+  const handleLoadFromHistory = (historyItem: typeof promptHistory[0]) => {
+    if (!historyItem) return
+    loadFromHistory(historyItem.template, historyItem.blocks)
     setHistoryDialogOpen(false)
-    
     toast({
       title: "Prompt Loaded",
       description: "Historical prompt has been loaded successfully",
@@ -350,17 +336,6 @@ export default function PromptBuilder({
     toast({
       title: "Prompt Saved",
       description: `Your prompt has been saved as "${name}"`,
-    })
-  }
-
-  const loadSavedPrompt = (template: PromptTemplate) => {
-    setBlocks(template.blocks)
-    setActiveTemplate(template.id)
-    setSavedPromptsOpen(false)
-
-    toast({
-      title: "Prompt Loaded",
-      description: "Your saved prompt has been loaded successfully",
     })
   }
 
@@ -430,14 +405,7 @@ export default function PromptBuilder({
         if (finalParsed && typeof finalParsed.generatedBlocks === "object") {
           const generatedBlocksMap = finalParsed.generatedBlocks as Record<string, string>
 
-          setBlocks((prevBlocks) =>
-            prevBlocks.map((block, index) => {
-              if (indicesToGenerate.includes(index) && generatedBlocksMap[block.type]) {
-                return { ...block, content: generatedBlocksMap[block.type] }
-              }
-              return block
-            }),
-          )
+          updateBlock(generatingBlockIndices[0], generatedBlocksMap[blocks[generatingBlockIndices[0]].type])
 
           const updatedCount = Object.keys(generatedBlocksMap).filter((type) =>
             blocks.some((b, i) => indicesToGenerate.includes(i) && b.type === type),
@@ -535,7 +503,7 @@ export default function PromptBuilder({
         try {
           const data = JSON.parse(event.target?.result as string)
           if (data.blocks && Array.isArray(data.blocks)) {
-            setBlocks(data.blocks)
+            updateBlock(0, data.blocks[0].content)
             if (data.template && promptTemplates.some((t) => t.id === data.template)) {
               setActiveTemplate(data.template)
             }
@@ -644,7 +612,7 @@ export default function PromptBuilder({
       <Navbar
         activeTemplate={activeTemplate}
         templates={promptTemplates}
-        onTemplateChange={setActiveTemplate}
+        onTemplateChange={handleTemplateChange}
         onSaveLoad={() => setSavedPromptsOpen(true)}
         onShare={sharePrompt}
         onExport={exportPrompt}
@@ -670,7 +638,7 @@ export default function PromptBuilder({
         {/* Left Column: Prompt Blocks */}
         <div className="lg:w-1/2 space-y-6">
           <AnimatePresence>
-            {isLoadingBlocks ? (
+            {isLoading ? (
               // Loading skeletons
               Array.from({ length: 3 }).map((_, index) => (
                 <motion.div
@@ -701,27 +669,24 @@ export default function PromptBuilder({
                   }}
                   className="prompt-block"
                 >
-                  <div className={cn("transition-opacity", !block.enabled && "opacity-50")}>
-                    <PromptBlockComponent
-                      block={block}
-                      index={index}
-                      isFocused={focusedBlockIndex === index}
-                      isDisabled={!block.enabled}
-                      isAwaitingGeneration={generatingBlockIndices.includes(index)}
-                      onChange={(content) => updateBlockContent(index, content)}
-                      onFocus={() => setFocusedBlockIndex(index)}
-                      onToggle={() => toggleBlockEnabled(index)}
-                      isRecording={recordingBlockIndex === index}
-                      onRecordingToggle={() => toggleRecording(index)}
-                      selectedModel={selectedModel}
-                      ref={(el) => {
-                        if (el) {
-                          blockRefs.current[index] = el
-                        }
-                      }}
-                    />
-                  </div>
-
+                  <PromptBlockComponent
+                    block={block}
+                    index={index}
+                    isFocused={focusedBlockIndex === index}
+                    isDisabled={!block.enabled}
+                    isAwaitingGeneration={generatingBlockIndices.includes(index)}
+                    onChange={(content) => handleUpdateBlock(index, content)}
+                    onFocus={() => setFocusedBlockIndex(index)}
+                    onToggle={() => handleToggleBlock(index)}
+                    isRecording={recordingBlockIndex === index}
+                    onRecordingToggle={() => toggleRecording(index)}
+                    selectedModel={selectedModel}
+                    ref={(el) => {
+                      if (el) {
+                        blockRefs.current[index] = el
+                      }
+                    }}
+                  />
                 </motion.div>
               ))
             )}
@@ -744,7 +709,7 @@ export default function PromptBuilder({
               </Button>
             </div>
             <div className="bg-white dark:bg-slate-900 p-1 md:p-4 rounded border border-slate-200 dark:border-slate-700 text-sm overflow-y-auto max-h-[60vh]">
-              {isLoadingBlocks ? (
+              {isLoading ? (
                 <div className="space-y-4">
                   <Skeleton className="h-4 w-3/4" />
                   <Skeleton className="h-4 w-full" />
@@ -762,7 +727,7 @@ export default function PromptBuilder({
       <SavedPromptsDialog
         open={savedPromptsOpen}
         onOpenChange={setSavedPromptsOpen}
-        onLoad={loadSavedPrompt}
+        onLoad={handleLoadSavedPrompt}
         onSave={saveCurrentPrompt}
         savedPrompts={savedPrompts}
         onDelete={deleteSavedPrompt}

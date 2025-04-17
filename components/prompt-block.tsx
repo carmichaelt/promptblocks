@@ -211,32 +211,45 @@ const PromptBlockComponent = forwardRef<HTMLTextAreaElement, PromptBlockProps>(
         </div>
 
         <div className="relative">
-          <Textarea
-            ref={ref}
-            value={block.content}
-            onChange={(e) => onChange(e.target.value)}
-            onFocus={onFocus}
-            disabled={isDisabled || isGenerating || !block.enabled}
-            placeholder={block.placeholder}
-            className={cn(
-              "min-h-24 resize-y border-slate-200 dark:border-slate-700 bg-white/90 dark:bg-slate-900/90",
-              isDisabled && "cursor-not-allowed",
-              isGenerating && "opacity-50",
-              !block.enabled && "cursor-not-allowed bg-slate-50 dark:bg-slate-800",
-              isOptional && !block.enabled && "bg-slate-100 dark:bg-slate-800"
-            )}
-          />
+          <motion.div
+            initial={false}
+            animate={{ opacity: isDisabled ? 0.6 : 1 }}
+            transition={{ duration: 0.2 }}
+          >
+            <Textarea
+              ref={ref}
+              value={block.content}
+              onChange={(e) => onChange(e.target.value)}
+              onFocus={onFocus}
+              disabled={isDisabled || isGenerating || !block.enabled}
+              placeholder={block.placeholder}
+              className={cn(
+                "min-h-24 resize-y border-slate-200 dark:border-slate-700 bg-white/90 dark:bg-slate-900/90",
+                isDisabled && "cursor-not-allowed",
+                isGenerating && "opacity-50",
+                !block.enabled && "cursor-not-allowed bg-slate-50 dark:bg-slate-800",
+                isOptional && !block.enabled && "bg-slate-100 dark:bg-slate-800"
+              )}
+            />
+          </motion.div>
 
           {/* Loading Overlay */}
-          {(isGenerating || isAwaitingGeneration) && (
-            <div className="absolute inset-0 flex items-center justify-center bg-white/70 dark:bg-slate-900/70 rounded-lg backdrop-blur-sm">
-              <LoadingSpinner 
-                variant={isGenerating ? "default" : "secondary"}
-                size="lg"
-                label={isGenerating ? "Generating content..." : "Waiting to generate..."}
-              />
-            </div>
-          )}
+          <AnimatePresence>
+            {(isGenerating || isAwaitingGeneration) && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="absolute inset-0 flex items-center justify-center bg-white/70 dark:bg-slate-900/70 rounded-lg backdrop-blur-sm"
+              >
+                <LoadingSpinner 
+                  variant={isGenerating ? "default" : "secondary"}
+                  size="lg"
+                  label={isGenerating ? "Generating content..." : "Waiting to generate..."}
+                />
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
 
         {/* Suggestions */}
